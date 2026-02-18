@@ -7,10 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── ENUMS ───────────────────────────────────────────────
+
 enum UserRole {
   CITIZEN
   AUTHORITY
 }
+
+enum ReportStatus {
+  REPORTED
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED_PENDING_VERIFICATION
+  CONFIRMED_FIXED
+  REOPENED
+  REJECTED
+}
+
+enum ReportCategory {
+  POTHOLES
+  GARBAGE
+  WATER_LEAKAGE
+  DRAINAGE_SEWAGE
+  STREETLIGHT
+  ROAD_DAMAGE
+  ILLEGAL_DUMPING
+  STRAY_ANIMALS
+  TRAFFIC_SIGNAL
+  ENCROACHMENT
+  BUILDING
+  FLOODING
+  OTHER
+}
+
+enum TimelineAction {
+  REPORTED
+  ASSIGNED
+  STATUS_CHANGED
+  COMMENT_ADDED
+  FIX_PHOTO_UPLOADED
+  CITIZEN_VERIFIED
+  CITIZEN_REOPENED
+  REJECTED
+  ESCALATED
+}
+
+// ─── USERS ───────────────────────────────────────────────
 
 model User {
   id            String   @id @default(uuid())
@@ -22,8 +64,192 @@ model User {
   authorityCode String?
   authorityBody String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports          Report[]        @relation("ReportCreator")
+  assignedReports  Report[]        @relation("ReportAuthority")
+  comments         Comment[]
+  upvotes          Upvote[]
+  mlaReviews       MlaReview[]
+  timelineEntries  IssueTimeline[]
 
   @@index([role])
+}
+
+// ─── WARDS ───────────────────────────────────────────────
+
+model Ward {
+  id              String  @id @default(uuid())
+  name            String  @unique
+  zone            String?
+  geojsonBoundary Json?
+
+  mlaId String? @unique
+  mla   Mla?    @relation
+
+  reports Report[]
+}
+
+// ─── MLAs ────────────────────────────────────────────────
+
+model Mla {
+  id             String @id @default(uuid())
+  name           String
+  party          String?
+  photoUrl       String?
+  yearsInOffice  Int?
+  constituency   String?
+
+  wardId String? @unique
+  ward   Ward?   @relation(fields: [wardId], references: [id])
+
+  reports    Report[]
+  mlaReviews MlaReview[]
+}
+
+// ─── REPORTS (ISSUES) ────────────────────────────────────
+
+model Report {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  category    ReportCategory
+  status      ReportStatus   @default(REPORTED)
+
+  areaName    String
+  mapAreaText String?
+
+  latitude  Float?
+  longitude Float?
+  locationText String?
+
+  // Ward & MLA assignment
+  wardId        String?
+  ward          Ward?   @relation(fields: [wardId], references: [id])
+  assignedMlaId String?
+  assignedMla   Mla?    @relation(fields: [assignedMlaId], references: [id])
+  mlaName       String?
+  constituencyName String?
+
+  // Authority assignment
+  assignedAuthorityId String?
+  assignedAuthority   User?  @relation("ReportAuthority", fields: [assignedAuthorityId], references: [id])
+
+  // Reporter
+  createdById String
+  createdBy   User   @relation("ReportCreator", fields: [createdById], references: [id])
+
+  // Photos
+  citizenPhotoUrl String?
+  fixPhotoUrl     String?
+  images          ReportImage[]
+
+  // Status metadata
+  rejectionReason String?
+  upvoteCount     Int      @default(0)
+  escalated       Boolean  @default(false)
+  escalatedAt     DateTime?
+  citizenVerified Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  timeline IssueTimeline[]
+  comments Comment[]
+  upvotes  Upvote[]
+
+  @@index([createdById])
+  @@index([status])
+  @@index([category])
+  @@index([assignedAuthorityId])
+  @@index([assignedMlaId])
+  @@index([wardId])
+}
+
+// ─── REPORT IMAGES ───────────────────────────────────────
+
+model ReportImage {
+  id         String  @id @default(uuid())
+  reportId   String
+  report     Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  isMain     Boolean @default(false)
+  mimeType   String
+  base64Data String
+
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+}
+
+// ─── ISSUE TIMELINE (IMMUTABLE AUDIT TRAIL) ──────────────
+
+model IssueTimeline {
+  id        String         @id @default(uuid())
+  issueId   String
+  issue     Report         @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  actorId   String?
+  actor     User?          @relation(fields: [actorId], references: [id])
+  actorName String
+  actorRole String         // CITIZEN, AUTHORITY, SYSTEM
+
+  action    TimelineAction
+  note      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([issueId])
+}
+
+// ─── COMMENTS ────────────────────────────────────────────
+
+model Comment {
+  id        String  @id @default(uuid())
+  issueId   String
+  issue     Report  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  content   String
+  isOfficial Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([issueId])
+}
+
+// ─── UPVOTES ─────────────────────────────────────────────
+
+model Upvote {
+  id       String @id @default(uuid())
+  issueId  String
+  issue    Report @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+// ─── MLA CITIZEN REVIEWS ─────────────────────────────────
+
+model MlaReview {
+  id        String @id @default(uuid())
+  mlaId     String
+  mla       Mla    @relation(fields: [mlaId], references: [id])
+
+  citizenId String
+  citizen   User   @relation(fields: [citizenId], references: [id])
+
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([mlaId])
 }

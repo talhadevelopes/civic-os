@@ -1,6 +1,37 @@
+import Link from "next/link";
 import { ArrowRight, CheckCircle2, Layers, MapPin, ShieldCheck } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+export default async function Home() {
+  const [
+    totalReports,
+    confirmedFixed,
+    mlaCount,
+    avgResolution,
+    userCount,
+  ] = await Promise.all([
+    prisma.report.count(),
+    prisma.report.count({ where: { status: "CONFIRMED_FIXED" } }),
+    prisma.report.groupBy({
+      by: ["constituencyName"],
+      where: { constituencyName: { not: null } },
+    }).then((g) => g.length),
+    prisma.report
+      .findMany({
+        where: { status: "CONFIRMED_FIXED" },
+        select: { createdAt: true, updatedAt: true },
+      })
+      .then((reports) => {
+        if (reports.length === 0) return null;
+        const avg =
+          reports.reduce((sum, r) => {
+            return sum + (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+          }, 0) / reports.length;
+        return avg.toFixed(1);
+      }),
+    prisma.user.count(),
+  ]);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <header
@@ -26,9 +57,9 @@ export default function Home() {
           </div>
 
           <nav className="flex items-center gap-2">
-            <button
-              type="button"
-              className="rounded-full border px-4 py-2 text-sm transition-colors"
+            <Link
+              href="/login"
+              className="rounded-full border px-4 py-2 text-sm transition"
               style={{
                 borderColor: "var(--border)",
                 color: "var(--text-primary)",
@@ -36,18 +67,18 @@ export default function Home() {
               }}
             >
               Login
-            </button>
-            <button
-              type="button"
-              className="rounded-full px-4 py-2 text-sm shadow-sm transition-colors"
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-full px-4 py-2 text-sm font-medium shadow-sm transition"
               style={{
                 background: "var(--primary)",
                 color: "var(--text-on-primary)",
                 boxShadow: "var(--shadow-green)",
               }}
             >
-              Signup
-            </button>
+              Sign up
+            </Link>
           </nav>
         </div>
       </header>
@@ -85,9 +116,9 @@ export default function Home() {
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm shadow-sm"
+                  <Link
+                    href="/reports/new"
+                    className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium shadow-sm transition"
                     style={{
                       background: "var(--primary)",
                       color: "var(--text-on-primary)",
@@ -96,10 +127,10 @@ export default function Home() {
                   >
                     Report an Issue
                     <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm"
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition"
                     style={{
                       borderColor: "var(--border)",
                       color: "var(--text-primary)",
@@ -107,7 +138,7 @@ export default function Home() {
                     }}
                   >
                     View Dashboard
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -126,82 +157,77 @@ export default function Home() {
                 </div>
               </div>
 
-            <div
-              className="rounded-2xl border p-5"
-              style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-            >
               <div
-                className="rounded-xl border p-5"
-                style={{ borderColor: "var(--border-green)", background: "var(--surface-stats)" }}
+                className="rounded-2xl border p-5"
+                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
               >
-                <div className="text-sm" style={{ color: "var(--text-stats-label)" }}>
-                  Live platform snapshot
+                <div
+                  className="rounded-xl border p-5"
+                  style={{ borderColor: "var(--border-green)", background: "var(--surface-stats)" }}
+                >
+                  <div className="text-sm" style={{ color: "var(--text-stats-label)" }}>
+                    Live platform snapshot
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
+                        {totalReports}
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
+                        Issues reported
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
+                        {confirmedFixed}
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
+                        Confirmed fixed
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
+                        {mlaCount}
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
+                        MLAs tracked
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
+                        {avgResolution ?? "—"}
+                        {avgResolution ? "d" : ""}
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
+                        Avg resolution
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
-                      1,248
-                    </div>
-                    <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
-                      Issues reported
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
-                      712
-                    </div>
-                    <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
-                      Confirmed fixed
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
-                      35
-                    </div>
-                    <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
-                      Active wards
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-semibold" style={{ color: "var(--text-stats)" }}>
-                      5.2d
-                    </div>
-                    <div className="text-xs" style={{ color: "var(--text-green-dark)" }}>
-                      Avg resolution
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-xl border p-4" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    Example tracking flow
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {[
-                      "REPORTED",
-                      "ASSIGNED",
-                      "IN_PROGRESS",
-                      "PENDING_VERIFICATION",
-                      "CONFIRMED_FIXED",
-                    ].map((s) => (
-                      <span
-                        key={s}
-                        className="rounded-full border px-3 py-1 text-[11px]"
-                        style={{
-                          background: "var(--primary-mint)",
-                          borderColor: "var(--primary-border)",
-                          color: "var(--text-green-dark)",
-                        }}
-                      >
-                        {s}
-                      </span>
-                    ))}
+                <div className="mt-5 grid gap-3">
+                  <div className="rounded-xl border p-4" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+                    <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      How it works
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {["Report", "Assign", "Fix", "Verify", "Done"].map((s) => (
+                        <span
+                          key={s}
+                          className="rounded-full border px-3 py-1 text-[11px] font-medium"
+                          style={{
+                            background: "var(--primary-mint)",
+                            borderColor: "var(--primary-border)",
+                            color: "var(--text-green-dark)",
+                          }}
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
         </section>
@@ -209,21 +235,9 @@ export default function Home() {
         <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              {
-                title: "Report",
-                desc: "Drop a pin, add a photo, submit in seconds.",
-                Icon: MapPin,
-              },
-              {
-                title: "Track",
-                desc: "Every action is logged in an immutable timeline.",
-                Icon: Layers,
-              },
-              {
-                title: "Verify",
-                desc: "Citizens confirm the fix — performance scores update live.",
-                Icon: CheckCircle2,
-              },
+              { title: "Report", desc: "Drop a pin, add a photo, submit in seconds.", Icon: MapPin },
+              { title: "Track", desc: "Every action is logged in an immutable timeline.", Icon: Layers },
+              { title: "Verify", desc: "Citizens confirm the fix — performance scores update live.", Icon: CheckCircle2 },
             ].map(({ title, desc, Icon }) => (
               <div
                 key={title}

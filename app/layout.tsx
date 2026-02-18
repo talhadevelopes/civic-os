@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Arvo } from "next/font/google";
 import "./globals.css";
+import AuthProvider from "@/components/AuthProvider";
+import { Toaster } from "sonner";
 
 const arvo = Arvo({
   subsets: ["latin"],
@@ -19,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${arvo.className} antialiased`}>
-        {children}
+        <AuthProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+        </AuthProvider>
       </body>
     </html>
   );
