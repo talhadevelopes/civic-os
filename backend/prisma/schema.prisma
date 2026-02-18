@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IssueStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  FIXED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CommentAuthorType {
+  CITIZEN
+  MLA
+  ORGANIZATION
+}
+
+model Issue {
+  id              String        @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  mediaUrl        String?
+  location        String       
+  latitude        Float?       
+  longitude       Float?       
+  status          IssueStatus   @default(PENDING)
+  severity        Severity      @default(LOW)
+
+  // 👇 Add these new fields (AI predictions)
+  aiCategory      String?       // AI-predicted category
+  aiSeverity      Severity?     // AI-predicted severity (optional)
+
+  citizenId       String
+  citizen         Citizen       @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+  mlaId           String?
+  mla             MLA?          @relation(fields: [mlaId], references: [id])
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+
+  comments        Comment[]
+  upvotes         Upvote[]      
+  upvoteCount     Int           @default(0)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+
+model Comment {
+  id              String            @id @default(cuid())
+  content         String
+  issueId         String
+  issue           Issue             @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  // Polymorphic author - Citizens, MLAs, and Orgs can all comment
+  authorType      CommentAuthorType
+  authorId        String
+  
+  citizenAuthor   Citizen?          @relation(fields: [citizenAuthorId], references: [id], onDelete: Cascade)
+  citizenAuthorId String?
+  
+  mlaAuthor       MLA?              @relation(fields: [mlaAuthorId], references: [id], onDelete: Cascade)
+  mlaAuthorId     String?
+  
+  orgAuthor       Organization?     @relation(fields: [orgAuthorId], references: [id], onDelete: Cascade)
+  orgAuthorId     String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([issueId])
+  @@index([authorType, authorId])
+}
+
+model Upvote {
+  id              String            @id @default(cuid())
+  issueId         String
+  issue           Issue             @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  // Only citizens can upvote issues
+  citizenId       String
+  citizen         Citizen           @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime          @default(now())
+
+  @@unique([issueId, citizenId])  // One upvote per citizen per issue
+  @@index([issueId])
+  @@index([citizenId])
+}
+
+model Citizen {
+  id                   String           @id @default(uuid())
+  name                 String
+  email                String           @unique
+  password             String
+  constituency         String           @default("khairtabad")
+  linked_MLAs          MLA[]            @relation("CitizenMLAs")
+  linked_Organizations Organization[]   @relation("CitizenOrganizations")
+  
+  // Content created by citizen
+  issues               Issue[]          // Issues they reported
+  comments             Comment[]        // Comments they made
+  upvotes              Upvote[]         // Issues they upvoted
+  
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model MLA {
+  id                   String     @id @default(uuid())
+  name                 String
+  constituency         String     @default("Khairtabad")
+  party                String?
+  email                String?    @unique
+  phone                String?
+  image                String?
+  
+  criminalCasesCount   Int?
+  education            String?
+  totalAssetsInRupees  Float?
+  liabilitiesInRupees  Float?
+  electionYear         Int?
+  dataSource           String?
+  mockHistory          String?
+  
+  citizens             Citizen[]  @relation("CitizenMLAs")
+  issues               Issue[]    
+  comments             Comment[]  
+  
+  totalComplaints      Int        @default(0)
+  resolvedComplaints   Int        @default(0)
+  rating               Float?
+  
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @default(now())
+}
+
+model Organization {
+  id                String     @id @default(uuid())
+  name              String
+  category          String
+  constituency      String     @default("Khairtabad")
+  contact_email     String?    @unique
+  contact_phone     String?
+  address           String?
+  
+  citizens          Citizen[]      @relation("CitizenOrganizations")
+  issues            Issue[]        // Issues assigned to them
+  comments          Comment[]      // Comments/updates they make
+
+  totalComplaints    Int        @default(0)
+  resolvedComplaints Int        @default(0)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
