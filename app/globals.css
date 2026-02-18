@@ -1,1 +1,325 @@
 @import "tailwindcss";
+
+@theme {
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-light: var(--primary-light);
+    --color-primary-dark: var(--primary-dark);
+    --color-background: var(--bg);
+    --color-surface: var(--surface);
+    --color-border: var(--border);
+    --color-text: var(--text-primary);
+    --color-text-muted: var(--text-muted);
+}
+
+/* ========== ROOT VARIABLES ========== */
+:root {
+
+    /* ── BRAND COLORS ── */
+    --primary: #16a34a;
+    /* Main green — buttons, logo, CTA     */
+    --primary-hover: #15803d;
+    /* Hover state on primary              */
+    --primary-light: #f0fdf4;
+    /* Light tint — card headers, hovers   */
+    --primary-dark: #14532d;
+    /* Deep green — stats numbers          */
+    --primary-mid: #166534;
+    /* Mid green — labels on mint bg       */
+    --primary-soft: #22c55e;
+    /* Badge dot, active indicators        */
+    --primary-border: #bbf7d0;
+    /* Card borders, dividers on mint      */
+    --primary-mint: #dcfce7;
+    /* Stats strip bg, badge backgrounds   */
+    --primary-subtle: #4ade80;
+    /* Hover borders, accent lines         */
+
+    /* ── NEUTRALS ── */
+    --black: #0f172a;
+    /* Hero h1, darkest headings             */
+    --grey-900: #111827;
+    /* Primary text, logo name               */
+    --grey-800: #374151;
+    /* Secondary headings, card foot text    */
+    --grey-600: #4b5563;
+    /* Body paragraphs                       */
+    --grey-500: #6b7280;
+    /* Sub text, descriptions                */
+    --grey-400: #9ca3af;
+    /* Timestamps, placeholders, captions    */
+    --grey-200: #e5e7eb;
+    /* Card borders, nav border, inputs      */
+    --grey-100: #f3f4f6;
+    /* Section dividers, card footers        */
+    --grey-50: #f9fafb;
+    /* Nav link hover background             */
+    --white: #ffffff;
+    /* Page background, card background      */
+
+    /* ── TYPOGRAPHY ── */
+    --font-body: "Arvo", serif;
+    --font-display: "Arvo", serif;
+
+    /* ── FONT SIZES ── */
+    --text-xs: 11.5px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-md: 15px;
+    --text-lg: 17px;
+    --text-xl: 20px;
+    --text-2xl: 26px;
+    --text-3xl: 36px;
+    --text-4xl: 52px;
+
+    /* ── BACKGROUNDS ── */
+    --bg: var(--white);
+    /* Main page background         */
+    --surface: var(--white);
+    /* Card / panel background      */
+    --surface-tint: var(--primary-light);
+    /* Card header tint             */
+    --surface-stats: var(--primary-mint);
+    /* Stats strip background       */
+    --surface-hover: var(--primary-light);
+    /* Row / card hover             */
+
+    /* ── BORDERS ── */
+    --border: var(--grey-200);
+    /* Default border               */
+    --border-green: var(--primary-border);
+    /* Green-tinted borders         */
+    --border-hover: var(--primary-subtle);
+    /* Hover border                 */
+
+    /* ── TEXT ── */
+    --text-primary: var(--grey-900);
+    /* Main text                    */
+    --text-heading: var(--black);
+    /* H1 / hero headings           */
+    --text-body: var(--grey-500);
+    /* Paragraphs                   */
+    --text-muted: var(--grey-400);
+    /* Timestamps, captions         */
+    --text-nav: var(--grey-600);
+    /* Navbar links                 */
+    --text-on-primary: var(--white);
+    /* Text on green bg             */
+    --text-green: var(--primary);
+    /* Green labels, accent text    */
+    --text-green-dark: var(--primary-mid);
+    /* Green text on mint bg        */
+    --text-stats: var(--primary-dark);
+    /* Numbers on stats strip       */
+    --text-stats-label: var(--primary-mid);
+    /* Labels on stats strip        */
+
+    /* ── SHADOWS ── */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08);
+    --shadow-green: 0 4px 16px rgba(22, 163, 74, 0.28);
+    --shadow-green-hover: 0 6px 24px rgba(22, 163, 74, 0.38);
+
+    /* ── BORDER RADIUS ── */
+    --radius-sm: 6px;
+    --radius-md: 9px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+}
+
+/* ========== GLOBAL RESET ========== */
+
+button {
+    cursor: pointer;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    font-family: var(--font-body);
+}
+
+h1,
+h2 {
+    font-family: var(--font-display);
+    color: var(--text-heading);
+    letter-spacing: -0.03em;
+}
+
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+p {
+    color: var(--text-body);
+    line-height: 1.75;
+}
+
+a {
+    font-family: var(--font-body);
+    text-decoration: none;
+}
+
+/* ========== STATUS BADGE SYSTEM ========== */
+
+.status-reported {
+    color: #ef4444;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+}
+
+.status-assigned {
+    color: #3b82f6;
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+}
+
+.status-inprogress {
+    color: #f59e0b;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+}
+
+.status-pending {
+    color: #a855f7;
+    background: #faf5ff;
+    border: 1px solid #d8b4fe;
+}
+
+.status-confirmed {
+    color: var(--primary);
+    background: var(--primary-mint);
+    border: 1px solid var(--primary-border);
+}
+
+.status-reopened {
+    color: #f97316;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+}
+
+.status-rejected {
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+}
+
+/* ========== LEADERBOARD RANK SYSTEM ========== */
+
+.rank-gold {
+    color: #f59e0b;
+    background: #fef3c7;
+}
+
+.rank-silver {
+    color: #9ca3af;
+    background: #f3f4f6;
+}
+
+.rank-bronze {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.rank-shame {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+/* ========== AUDIT TRAIL TIMELINE ========== */
+
+.timeline-line-active {
+    background: var(--primary-border);
+}
+
+.timeline-line-pending {
+    background: var(--grey-200);
+}
+
+.timeline-dot-done {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.timeline-dot-active {
+    background: var(--primary-mint);
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.timeline-dot-pending {
+    background: var(--grey-100);
+    border: 2px solid var(--grey-200);
+    color: var(--grey-400);
+}
+
+/* ========== MAP SYSTEM ========== */
+
+/* Ward choropleth density scale */
+.map-ward-low {
+    fill: #bbf7d0;
+}
+
+/* few issues      */
+.map-ward-medium {
+    fill: #4ade80;
+}
+
+/* moderate        */
+.map-ward-high {
+    fill: #f59e0b;
+}
+
+/* many — amber    */
+.map-ward-critical {
+    fill: #ef4444;
+}
+
+/* severe — red    */
+
+/* Leaflet overrides */
+.leaflet-div-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-price-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+.map-fullscreen-container:fullscreen {
+    height: 100vh !important;
+    width: 100vw !important;
+    border-radius: 0 !important;
+}
+
+.map-fullscreen-container:fullscreen .leaflet-container {
+    height: 100vh !important;
+    border-radius: 0 !important;
+}
+
+/* ========== ALERT / ESCALATION ========== */
+
+.alert-escalated {
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: var(--text-sm);
+}
