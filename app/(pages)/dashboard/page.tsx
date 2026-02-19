@@ -3,9 +3,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
 import { computeWardCounts } from "@/lib/wardCounts";
-import DashboardMapWrapper from "@/components/DashboardMapWrapper";
-import DashboardSearch from "@/components/DashboardSearch";
-import DashboardCharts from "@/components/DashboardCharts";
+import DashboardMapWrapper from "@/app/_components/maps/DashboardMapWrapper";
+import DashboardSearch from "@/app/_components/dashboard/DashboardSearch";
+import DashboardCharts from "@/app/_components/dashboard/DashboardCharts";
 import {
   FileText,
   CheckCircle2,

@@ -1,4 +1,4 @@
-import AssistantClient from "@/components/AssistantClient";
+import AssistantClient from "@/app/_components/common/AssistantClient";
 
 const SUGGESTED_PROMPTS = [
   "What are the top unresolved issues in Kukatpally right now?",

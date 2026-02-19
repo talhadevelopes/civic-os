@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Arvo } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "@/components/AuthProvider";
+import AuthProvider from "@/app/_components/auth/AuthProvider";
 import { Toaster } from "sonner";
 
 const arvo = Arvo({

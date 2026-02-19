@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { AREA_TO_MLA } from "../lib/areaToMla";
+import { AREA_TO_MLA } from "../public/data/areaToMla";
 
 const prisma = new PrismaClient();
 

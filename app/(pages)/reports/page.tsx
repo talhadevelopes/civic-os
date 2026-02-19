@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import ReportsGlobalMapClient from "@/components/ReportsGlobalMapClient";
+import ReportsGlobalMapClient from "@/app/_components/reports/ReportsGlobalMapClient";
 import { REPORT_CATEGORIES } from "@/lib/reportCategories";
-import { AREA_TO_MLA } from "@/lib/areaToMla";
+import { AREA_TO_MLA } from "@/public/data/areaToMla";
 import { Search } from "lucide-react";
 
 const STATUS_OPTIONS = [

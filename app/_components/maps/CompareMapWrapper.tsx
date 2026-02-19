@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const MlaWardMap = dynamic(() => import("@/components/MlaWardMap"), { ssr: false });
+const MlaWardMap = dynamic(() => import("@/app/_components/maps/MlaWardMap"), { ssr: false });
 
 type MapReport = { id: string; title: string; status: string; latitude: number; longitude: number };
 

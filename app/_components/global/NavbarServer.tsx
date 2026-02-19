@@ -1,5 +1,5 @@
 import { requireServerSession } from "@/lib/authServer";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/app/_components/global/Navbar";
 
 export default async function NavbarServer() {
   const session = await requireServerSession();

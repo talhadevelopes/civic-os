@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMlaBySlug } from "@/lib/mlaStats";
-import MlaProfileClient from "@/components/MlaProfileClient";
+import MlaProfileClient from "@/app/_components/profiles/MlaProfileClient";
 
 const UNRESOLVED = [
   "REPORTED",

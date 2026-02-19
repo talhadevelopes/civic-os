@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic";
 
-import type { GlobalMapReport } from "@/components/ReportsGlobalMap";
+import type { GlobalMapReport } from "@/app/_components/reports/ReportsGlobalMap";
 
-const ReportsGlobalMap = dynamic(() => import("@/components/ReportsGlobalMap"), { ssr: false });
+const ReportsGlobalMap = dynamic(() => import("@/app/_components/reports/ReportsGlobalMap"), { ssr: false });
 
 export default function ReportsGlobalMapClient({ reports }: { reports: GlobalMapReport[] }) {
   return <ReportsGlobalMap reports={reports} />;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMlaStatsFromReports } from "@/lib/mlaStats";
-import StatsCharts from "@/components/StatsCharts";
+import StatsCharts from "@/app/_components/common/StatsCharts";
 import { TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 
 export default async function StatsPage() {

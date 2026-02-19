@@ -2,10 +2,10 @@
 
 import dynamic from "next/dynamic";
 
-const MlaProfileCharts = dynamic(() => import("@/components/MlaProfileCharts"), {
+const MlaProfileCharts = dynamic(() => import("@/app/_components/profiles/MlaProfileCharts"), {
   ssr: false,
 });
-const MlaWardMap = dynamic(() => import("@/components/MlaWardMap"), {
+const MlaWardMap = dynamic(() => import("@/app/_components/maps/MlaWardMap"), {
   ssr: false,
 });
 

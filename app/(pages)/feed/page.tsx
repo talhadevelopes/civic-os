@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { REPORT_CATEGORIES } from "@/lib/reportCategories";
-import { AREA_TO_MLA } from "@/lib/areaToMla";
-import FeedCard from "@/components/FeedCard";
+import { AREA_TO_MLA } from "@/public/data/areaToMla";
+import FeedCard from "@/app/_components/common/FeedCard";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authServer";
 

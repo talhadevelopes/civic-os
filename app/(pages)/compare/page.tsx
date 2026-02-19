@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMlaStatsFromReports } from "@/lib/mlaStats";
-import { AREA_TO_MLA } from "@/lib/areaToMla";
-import CompareMapWrapper from "@/components/CompareMapWrapper";
+import { AREA_TO_MLA } from "@/public/data/areaToMla";
+import CompareMapWrapper from "@/app/_components/maps/CompareMapWrapper";
 
 const uniqueAreas = [...new Set(AREA_TO_MLA.map((a) => a.area))].sort();
 

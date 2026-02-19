@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
-import { lookupMlaByArea } from "@/lib/areaToMla";
+import { lookupMlaByArea } from "@/public/data/areaToMla";
 
 const REPORT_CATEGORY_VALUES = [
   "POTHOLES",

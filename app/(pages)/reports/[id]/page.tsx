@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
-import IssueDetailClient from "@/components/IssueDetailClient";
+import IssueDetailClient from "@/app/_components/common/IssueDetailClient";
 
 export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

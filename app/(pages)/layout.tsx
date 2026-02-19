@@ -1,4 +1,4 @@
-import NavbarServer from "@/components/NavbarServer";
+import NavbarServer from "@/app/_components/global/NavbarServer";
 
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { AREA_TO_MLA } from "@/lib/areaToMla";
+import { AREA_TO_MLA } from "@/public/data/areaToMla";
 
 const UNRESOLVED_STATUSES = [
   "REPORTED",

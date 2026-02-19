@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 
-import { AUTHORITY_CODE_MAP } from "@/lib/authorityCodes";
+import { AUTHORITY_CODE_MAP } from "@/public/data/authorityCodes";
 import { prisma } from "@/lib/prisma";
 
 type Role = "CITIZEN" | "AUTHORITY";

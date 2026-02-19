@@ -5,10 +5,10 @@ import dynamic from "next/dynamic";
 import { toast } from "sonner";
 
 import { REPORT_CATEGORIES, type ReportCategoryValue } from "@/lib/reportCategories";
-import { AREA_TO_MLA } from "@/lib/areaToMla";
-import type { ClientMapMarker } from "@/components/ClientMap";
+import { AREA_TO_MLA } from "@/public/data/areaToMla";
+import type { ClientMapMarker } from "@/app/_components/maps/ClientMap";
 
-const ClientMap = dynamic(() => import("@/components/ClientMap"), { ssr: false });
+const ClientMap = dynamic(() => import("@/app/_components/maps/ClientMap"), { ssr: false });
 
 export default function NewReportPage() {
   const [title, setTitle] = useState("");
