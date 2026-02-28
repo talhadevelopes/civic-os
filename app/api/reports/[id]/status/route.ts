@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
+import { reportUpdates } from "@/lib/reportUpdates";
 
 // Valid status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -115,5 +116,7 @@ export async function PATCH(
     }),
   ]);
 
+  // broadcast status update so maps/dashboards stay in sync
+  reportUpdates.emit("update-report", updatedIssue);
   return NextResponse.json({ report: updatedIssue });
 }

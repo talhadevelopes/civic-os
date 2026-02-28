@@ -116,16 +116,57 @@ function legendItems() {
 export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // live list maintained in state so we can append new reports
+  const [liveReports, setLiveReports] = useState<GlobalMapReport[]>(reports);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
 
-  const selected = useMemo(() => reports.find((r) => r.id === selectedId) ?? null, [reports, selectedId]);
+  // initialize all categories as active once component mounts
+  React.useEffect(() => {
+    setActiveCategories(legendItems().map((it) => it.key));
+  }, []);
+
+  // subscribe to new-report events via SSE
+  React.useEffect(() => {
+    const es = new EventSource("/api/reports/stream");
+    es.addEventListener("new", (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data) as GlobalMapReport;
+        setLiveReports((prev) => [data, ...prev]);
+      } catch (err) {
+        console.error("malformed event data", err);
+      }
+    });
+
+    es.addEventListener("update", (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data) as GlobalMapReport;
+        setLiveReports((prev) => prev.map((r) => (r.id === data.id ? data : r)));
+      } catch (err) {
+        console.error("malformed update event", err);
+      }
+    });
+
+    es.onerror = () => {
+      // if connection fails, it will retry automatically; log for debugging
+      console.warn("SSE connection to /api/reports/stream closed");
+    };
+    return () => {
+      es.close();
+    };
+  }, []);
+
+  const selected = useMemo(
+    () => liveReports.find((r) => r.id === selectedId) ?? null,
+    [liveReports, selectedId]
+  );
 
   const center = useMemo<[number, number]>(() => {
     if (selected) return [selected.latitude, selected.longitude];
-    if (reports.length) return [reports[0].latitude, reports[0].longitude];
+    if (liveReports.length) return [liveReports[0].latitude, liveReports[0].longitude];
     return [17.385, 78.4867];
-  }, [reports, selected]);
+  }, [liveReports, selected]);
 
-  if (!reports.length) {
+  if (!liveReports.length) {
     return (
       <div
         className="w-full rounded-2xl overflow-hidden border flex items-center justify-center"
@@ -146,8 +187,10 @@ export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport
 
         <FlyToLocation coords={selected ? { lat: selected.latitude, lng: selected.longitude } : null} />
 
-        {reports.map((r) => {
-          const isSelected = selectedId === r.id;
+        {liveReports
+          .filter((r) => activeCategories.includes(r.category))
+          .map((r) => {
+            const isSelected = selectedId === r.id;
           return (
             <Marker
               key={r.id}
@@ -182,14 +225,31 @@ export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport
           LEGEND
         </p>
         <div className="mt-2 grid gap-2">
-          {legendItems().map((it) => (
-            <div key={it.key} className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full" style={{ background: categoryColor(it.key) }} />
-              <span className="text-xs" style={{ color: "var(--text-body)" }}>
-                {it.label}
-              </span>
-            </div>
-          ))}
+          {legendItems().map((it) => {
+            const active = activeCategories.includes(it.key);
+            return (
+              <button
+                key={it.key}
+                className="flex items-center gap-2"
+                onClick={() => {
+                  setActiveCategories((prev) =>
+                    prev.includes(it.key)
+                      ? prev.filter((c) => c !== it.key)
+                      : [...prev, it.key]
+                  );
+                }}
+                style={{ cursor: "pointer", opacity: active ? 1 : 0.4 }}
+              >
+                <div
+                  className="h-3 w-3 rounded-full"
+                  style={{ background: categoryColor(it.key) }}
+                />
+                <span className="text-xs" style={{ color: "var(--text-body)" }}>
+                  {it.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

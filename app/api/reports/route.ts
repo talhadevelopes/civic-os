@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
 import { lookupMlaByArea } from "@/public/data/areaToMla";
 
+// emitter used for realtime updates (SSE/websocket)
+import { reportUpdates } from "@/lib/reportUpdates";
+
 const REPORT_CATEGORY_VALUES = [
   "POTHOLES",
   "GARBAGE",
@@ -169,6 +172,9 @@ export async function POST(req: Request) {
       },
     });
   }
+
+  // broadcast the new report to any live clients
+  reportUpdates.emit("new-report", report);
 
   return NextResponse.json({ report });
 }
