@@ -60,6 +60,7 @@ model User {
   email         String   @unique
   passwordHash  String
   role          UserRole @default(CITIZEN)
+  phone         String?  @unique
 
   authorityCode String?
   authorityBody String?
@@ -73,8 +74,10 @@ model User {
   upvotes          Upvote[]
   mlaReviews       MlaReview[]
   timelineEntries  IssueTimeline[]
+  whatsappSession  WhatsappSession?
 
   @@index([role])
+  @@index([phone])
 }
 
 // ─── WARDS ───────────────────────────────────────────────
@@ -236,6 +239,23 @@ model Upvote {
 
   @@unique([issueId, userId])
   @@index([issueId])
+}
+
+// ─── WHATSAPP SESSIONS ─────────────────────────────────────
+
+model WhatsappSession {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  step          String   @default("idle")
+  currentReport Json?
+  lastActivity  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ─── MLA CITIZEN REVIEWS ─────────────────────────────────
