@@ -1,330 +1,180 @@
+/**
+ * CIVICOS — Prisma Seed Script
+ * Reads from data/mla.json and data/report.json
+ * Run: npm run seed
+ */
+
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
-import { AREA_TO_MLA } from "../public/data/areaToMla";
+import { createRequire } from "module";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const require = createRequire(import.meta.url);
+const bcrypt = require("bcrypt") as typeof import("bcrypt");
 
 const prisma = new PrismaClient();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const CATEGORIES = [
-  "POTHOLES",
-  "GARBAGE",
-  "WATER_LEAKAGE",
-  "DRAINAGE_SEWAGE",
-  "STREETLIGHT",
-  "ROAD_DAMAGE",
-  "ILLEGAL_DUMPING",
-  "STRAY_ANIMALS",
-  "TRAFFIC_SIGNAL",
-  "ENCROACHMENT",
-  "BUILDING",
-  "FLOODING",
-  "OTHER",
-] as const;
-
-const STATUSES = [
-  "REPORTED",
-  "ASSIGNED",
-  "IN_PROGRESS",
-  "RESOLVED_PENDING_VERIFICATION",
-  "CONFIRMED_FIXED",
-  "REOPENED",
-  "REJECTED",
-] as const;
-
-// Hyderabad coordinates bounds
-const HYDERABAD_BOUNDS = {
-  latMin: 17.2,
-  latMax: 17.6,
-  lngMin: 78.2,
-  lngMax: 78.6,
-};
-
-function randomFloat(min: number, max: number) {
-  return Math.random() * (max - min) + min;
+// Read + parse JSON files (strips trailing period if present)
+function readJson(filename: string) {
+  const filePath = path.join(__dirname, "..", "data", filename);
+  let raw = fs.readFileSync(filePath, "utf-8").trim();
+  if (raw.endsWith(".")) raw = raw.slice(0, -1);
+  return JSON.parse(raw);
 }
 
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function randomElement<T>(arr: readonly T[] | T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randomDate(daysAgo: number) {
-  const now = Date.now();
-  const daysInMs = daysAgo * 24 * 60 * 60 * 1000;
-  return new Date(now - Math.random() * daysInMs);
-}
+const MLA_PLACEHOLDER_IMAGES = [
+  "https://randomuser.me/api/portraits/men/1.jpg",
+  "https://randomuser.me/api/portraits/men/2.jpg",
+  "https://randomuser.me/api/portraits/men/3.jpg",
+  "https://randomuser.me/api/portraits/men/4.jpg",
+  "https://randomuser.me/api/portraits/men/5.jpg",
+  "https://randomuser.me/api/portraits/men/6.jpg",
+  "https://randomuser.me/api/portraits/men/7.jpg",
+  "https://randomuser.me/api/portraits/men/8.jpg",
+  "https://randomuser.me/api/portraits/men/9.jpg",
+  "https://randomuser.me/api/portraits/men/10.jpg",
+];
 
 async function main() {
-  console.log("🌱 Starting seed...");
+  console.log("🌱 Starting CIVICOS seed...\n");
 
-  // Clear existing data
-  console.log("🧹 Cleaning existing data...");
-  await prisma.issueTimeline.deleteMany();
-  await prisma.comment.deleteMany();
+  // ── Clear all tables ──────────────────────────────────────────
+  await prisma.mlaReview.deleteMany();
   await prisma.upvote.deleteMany();
+  await prisma.comment.deleteMany();
+  await prisma.issueTimeline.deleteMany();
   await prisma.reportImage.deleteMany();
   await prisma.report.deleteMany();
-  await prisma.mlaReview.deleteMany();
   await prisma.mla.deleteMany();
-  await prisma.ward.deleteMany();
   await prisma.user.deleteMany();
+  console.log("✓ Cleared all existing data");
 
-  // Create citizens
-  console.log("👥 Creating citizens...");
-  const citizenNames = [
-    "Ahmed Khan",
-    "Priya Sharma",
-    "Rajesh Kumar",
-    "Sneha Reddy",
-    "Vikram Singh",
-    "Anjali Patel",
-    "Mohammed Ali",
-    "Kavita Nair",
-    "Rahul Mehta",
-    "Deepika Iyer",
-    "Arjun Desai",
-    "Meera Joshi",
-    "Suresh Rao",
-    "Lakshmi Menon",
-    "Amit Verma",
-  ];
+  const hashedPw = await bcrypt.hash("password123", 10);
 
-  const citizens = await Promise.all(
-    citizenNames.map(async (name, i) => {
-      const email = `citizen${i + 1}@civicos.in`;
-      const passwordHash = await bcrypt.hash("password123", 10);
-      return prisma.user.create({
-        data: {
-          name,
-          email,
-          passwordHash,
-          role: "CITIZEN",
-        },
-      });
-    })
-  );
+  // ── 1. Users ──────────────────────────────────────────────────
+  const authority = await prisma.user.create({
+    data: {
+      name: "GHMC Authority",
+      email: "authority@ghmc.gov.in",
+      passwordHash: hashedPw,
+      role: "AUTHORITY",
+      authorityBody: "GHMC",
+      authorityCode: "GHMC-HQ-001",
+    },
+  });
 
-  console.log(`✅ Created ${citizens.length} citizens`);
+  const citizen = await prisma.user.create({
+    data: {
+      name: "Ahmed Khan",
+      email: "ahmed.khan@gmail.com",
+      passwordHash: hashedPw,
+      role: "CITIZEN",
+    },
+  });
 
-  // Create authorities
-  console.log("🏛️ Creating authorities...");
-  const authorityData = [
-    { name: "GHMC Officer", email: "ghmc@civicos.in", code: "GHMC-2024", body: "GHMC" },
-    { name: "MLA Office Kukatpally", email: "mla-kukatpally@civicos.in", code: "MLA-SEC-14", body: "MLA Ward 14" },
-    { name: "Hyderabad Metro Water", email: "hmw@civicos.in", code: "HMW-2024", body: "HMW" },
-    { name: "MLA Office Secunderabad", email: "mla-sec@civicos.in", code: "MLA-SEC-15", body: "MLA Ward 15" },
-  ];
+  console.log("✓ Created 2 users (1 authority, 1 citizen: Ahmed Khan)");
 
-  const authorities = await Promise.all(
-    authorityData.map(async ({ name, email, code, body }) => {
-      const passwordHash = await bcrypt.hash("password123", 10);
-      return prisma.user.create({
-        data: {
-          name,
-          email,
-          passwordHash,
-          role: "AUTHORITY",
-          authorityCode: code,
-          authorityBody: body,
-        },
-      });
-    })
-  );
+  // ── 2. MLAs ───────────────────────────────────────────────────
+  const mlaData = readJson("mla.json");
+  let mlaCount = 0;
 
-  console.log(`✅ Created ${authorities.length} authorities`);
+  for (const m of mlaData) {
+    const photoUrl = m.photoUrl || MLA_PLACEHOLDER_IMAGES[mlaCount % MLA_PLACEHOLDER_IMAGES.length];
+    await prisma.mla.create({
+      data: {
+        name: m.mlaName,
+        party: m.party ?? null,
+        photoUrl: photoUrl,
+        yearsInOffice: m.yearsInOffice ?? null,
+        constituency: m.constituency ?? null,
+      },
+    });
+    mlaCount++;
+  }
 
-  // Create unique areas from AREA_TO_MLA
-  const uniqueAreas = [...new Set(AREA_TO_MLA.map((a) => a.area))];
-  const uniqueMlas = Array.from(
-    new Map(AREA_TO_MLA.map((a) => [a.mla_name, { name: a.mla_name, constituency: a.constituency }])).values()
-  );
+  console.log(`✓ Created ${mlaCount} MLA records`);
 
-  // Create reports
-  console.log("📋 Creating reports...");
-  const reportTitles = [
-    "Deep pothole on main road causing accidents",
-    "Garbage not collected for 3 days",
-    "Water leakage from broken pipe",
-    "Drainage blocked causing flooding",
-    "Streetlight not working",
-    "Road damage near school",
-    "Illegal dumping in park",
-    "Stray dogs causing nuisance",
-    "Traffic signal malfunctioning",
-    "Encroachment on footpath",
-    "Building construction debris blocking road",
-    "Severe flooding during rain",
-    "Broken manhole cover",
-    "Overflowing garbage bin",
-    "Damaged speed breaker",
-    "Missing road sign",
-    "Tree branch blocking road",
-    "Open drain without cover",
-    "Damaged footpath tiles",
-    "Water logging issue",
-  ];
+  // ── 3. Reports + images + timelines ──────────────────────────
+  const reportData = readJson("report.json");
+  let reportCount = 0;
 
-  const reports = [];
-  const now = new Date();
+  for (const r of reportData) {
+    const isAssigned = ["ASSIGNED", "IN_PROGRESS", "CONFIRMED_FIXED", "REOPENED"].includes(r.status);
 
-  for (let i = 0; i < 150; i++) {
-    const title = randomElement(reportTitles);
-    const area = randomElement(uniqueAreas);
-    const mla = AREA_TO_MLA.find((a) => a.area === area);
-    const category = randomElement(CATEGORIES);
-    const status = randomElement(STATUSES);
-    const createdBy = randomElement(citizens);
-    const createdAt = randomDate(90); // Last 90 days
-    const updatedAt = status === "REPORTED" ? createdAt : randomDate(30);
+    const daysAgo = Math.floor(Math.random() * 120);
+    const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
 
     const report = await prisma.report.create({
       data: {
-        title: `${title} (${i + 1})`,
-        description: `This is a detailed description of the issue reported in ${area}. The problem has been affecting residents for some time now.`,
-        category: category as any,
-        status: status as any,
-        areaName: area,
-        mlaName: mla?.mla_name ?? null,
-        constituencyName: mla?.constituency ?? null,
-        latitude: randomFloat(HYDERABAD_BOUNDS.latMin, HYDERABAD_BOUNDS.latMax),
-        longitude: randomFloat(HYDERABAD_BOUNDS.lngMin, HYDERABAD_BOUNDS.lngMax),
-        locationText: `${area}, Hyderabad`,
-        createdById: createdBy.id,
-        upvoteCount: randomInt(0, 50),
-        escalated: createdAt < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) && status !== "CONFIRMED_FIXED",
-        escalatedAt:
-          createdAt < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) && status !== "CONFIRMED_FIXED"
-            ? new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000)
-            : null,
-        citizenVerified: status === "CONFIRMED_FIXED" ? true : status === "REOPENED" ? false : null,
-        assignedAuthorityId: status !== "REPORTED" ? randomElement(authorities).id : null,
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        status: r.status,
+        areaName: r.areaName,
+        mlaName: r.mlaName ?? null,
+        constituencyName: r.constituencyName ?? null,
+        latitude: r.lat ?? null,
+        longitude: r.lng ?? null,
+        createdById: citizen.id,
+        assignedAuthorityId: isAssigned ? authority.id : null,
+        upvoteCount: Math.floor(Math.random() * 50),
+        escalated: Math.random() > 0.8,
+        citizenVerified: r.status === "CONFIRMED_FIXED" ? true : null,
         createdAt,
-        updatedAt,
+        updatedAt: new Date(createdAt.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+        // Attach the image URL
+        images: r.imageUrl
+          ? {
+              create: {
+                isMain: true,
+                url: r.imageUrl,
+              },
+            }
+          : undefined,
       },
     });
 
-    // Create timeline entries
+    // Timeline: REPORTED
     await prisma.issueTimeline.create({
       data: {
         issueId: report.id,
-        actorId: createdBy.id,
-        actorName: createdBy.name,
+        actorId: citizen.id,
+        actorName: citizen.name,
         actorRole: "CITIZEN",
         action: "REPORTED",
-        note: `Issue reported by ${createdBy.name}.`,
+        note: "Issue reported via CivicOS platform.",
+        createdAt,
       },
     });
 
-    if (mla) {
+    // Timeline: ASSIGNED
+    if (isAssigned) {
       await prisma.issueTimeline.create({
         data: {
           issueId: report.id,
-          actorId: null,
-          actorName: "System",
-          actorRole: "SYSTEM",
+          actorId: authority.id,
+          actorName: "GHMC Authority",
+          actorRole: "AUTHORITY",
           action: "ASSIGNED",
-          note: `Automatically assigned to MLA ${mla.mla_name} (${mla.constituency}) based on area: ${area}.`,
+          note: "Assigned to field inspection team for site visit.",
+          createdAt: new Date(createdAt.getTime() + 2 * 24 * 60 * 60 * 1000),
         },
       });
     }
 
-    if (status !== "REPORTED" && report.assignedAuthorityId) {
-      const authority = authorities.find((a) => a.id === report.assignedAuthorityId);
-      if (authority) {
-        await prisma.issueTimeline.create({
-          data: {
-            issueId: report.id,
-            actorId: authority.id,
-            actorName: authority.name,
-            actorRole: "AUTHORITY",
-            action: "STATUS_CHANGED",
-            note: `Status changed to ${status}.`,
-          },
-        });
-      }
-    }
-
-    if (status === "CONFIRMED_FIXED") {
-      await prisma.issueTimeline.create({
-        data: {
-          issueId: report.id,
-          actorId: createdBy.id,
-          actorName: createdBy.name,
-          actorRole: "CITIZEN",
-          action: "CITIZEN_VERIFIED",
-          note: `Fix confirmed by ${createdBy.name}.`,
-        },
-      });
-    }
-
-    // Add some upvotes
-    const upvoteCount = randomInt(0, Math.min(20, citizens.length));
-    const upvoters = citizens.sort(() => Math.random() - 0.5).slice(0, upvoteCount);
-    for (const voter of upvoters) {
-      await prisma.upvote.create({
-        data: {
-          issueId: report.id,
-          userId: voter.id,
-        },
-      });
-    }
-
-    // Add some comments
-    if (Math.random() > 0.5) {
-      const commenter = randomElement(citizens);
-      await prisma.comment.create({
-        data: {
-          issueId: report.id,
-          userId: commenter.id,
-          content: `This is a public comment on the issue. Hope it gets resolved soon!`,
-          isOfficial: false,
-        },
-      });
-    }
-
-    reports.push(report);
+    reportCount++;
   }
 
-  console.log(`✅ Created ${reports.length} reports`);
-
-  // Create some comments from authorities
-  console.log("💬 Creating official comments...");
-  const officialComments = reports.filter(() => Math.random() > 0.7);
-  for (const report of officialComments) {
-    if (report.assignedAuthorityId) {
-      const authority = authorities.find((a) => a.id === report.assignedAuthorityId);
-      if (authority) {
-        await prisma.comment.create({
-          data: {
-            issueId: report.id,
-            userId: authority.id,
-            content: `Official response: We are looking into this matter and will update soon.`,
-            isOfficial: true,
-          },
-        });
-      }
-    }
-  }
-
-  console.log(`✅ Created ${officialComments.length} official comments`);
-
-  console.log("🎉 Seed completed successfully!");
-  console.log("\n📊 Summary:");
-  console.log(`   Citizens: ${citizens.length}`);
-  console.log(`   Authorities: ${authorities.length}`);
-  console.log(`   Reports: ${reports.length}`);
-  console.log(`\n🔑 Login credentials:`);
-  console.log(`   Citizen: citizen1@civicos.in / password123`);
-  console.log(`   Authority: ghmc@civicos.in / password123`);
+  console.log(`✓ Created ${reportCount} reports with images and timelines`);
+  console.log("\n🎉 Seed complete!\n");
+  console.log("── Login credentials ──────────────────────────────");
+  console.log("  Citizen:   ahmed.khan@gmail.com   / password123");
+  console.log("  Authority: authority@ghmc.gov.in  / password123");
+  console.log("───────────────────────────────────────────────────\n");
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error("Seed error:", e); process.exit(1); })
+  .finally(() => prisma.$disconnect());

@@ -5,19 +5,11 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import {
-  LayoutDashboard,
-  FileText,
-  Megaphone,
-  Trophy,
-  User as UserIcon,
+  Search,
+  Bell,
+  Plus,
   LogOut,
-  Menu,
-  X,
-  Shield,
-  Building2,
-  BarChart3,
-  GitCompare,
-  Bot,
+  User as UserIcon,
 } from "lucide-react";
 
 type NavbarProps = {
@@ -25,170 +17,70 @@ type NavbarProps = {
     id: string;
     name?: string | null;
     role: "CITIZEN" | "AUTHORITY";
-    authorityBody?: string | null;
+    avatar?: string | null;
   } | null;
 };
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/reports", label: "Reports", icon: FileText },
-  { href: "/feed", label: "Feed", icon: Megaphone },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { href: "/authorities", label: "Authorities", icon: Building2 },
-  { href: "/stats", label: "Stats", icon: BarChart3 },
-  { href: "/compare", label: "Compare", icon: GitCompare },
-  { href: "/assistant", label: "AI", icon: Bot },
-];
-
 export default function Navbar({ user }: NavbarProps) {
-  const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  function isActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/");
-  }
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b"
-      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
-        {/* Logo */}
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold"
-            style={{ background: "var(--primary)", color: "var(--text-on-primary)" }}
-          >
-            C
-          </div>
-          <span className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-            CIVICOS
-          </span>
-        </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-              style={{
-                color: isActive(href) ? "var(--primary)" : "var(--text-nav)",
-                background: isActive(href) ? "var(--primary-light)" : "transparent",
-              }}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2">
-          {user ? (
-            <>
-              {/* Role badge */}
-              {user.role === "AUTHORITY" && (
-                <div
-                  className="hidden items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium sm:flex"
-                  style={{
-                    background: "#eff6ff",
-                    borderColor: "#93c5fd",
-                    color: "#2563eb",
-                  }}
-                >
-                  <Shield className="h-3 w-3" />
-                  {user.authorityBody || "Authority"}
-                </div>
-              )}
-
-              {/* Profile link */}
-              <Link
-                href="/profile"
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors"
-                style={{
-                  color: isActive("/profile") ? "var(--primary)" : "var(--text-nav)",
-                  background: isActive("/profile") ? "var(--primary-light)" : "transparent",
-                }}
-              >
-                <UserIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">{user.name?.split(" ")[0]}</span>
-              </Link>
-
-              {/* Logout */}
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm transition-colors"
-                style={{ color: "var(--text-muted)" }}
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/login"
-                className="rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--text-primary)",
-                  background: "var(--surface)",
-                }}
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                style={{
-                  background: "var(--primary)",
-                  color: "var(--text-on-primary)",
-                  boxShadow: "var(--shadow-green)",
-                }}
-              >
-                Sign up
-              </Link>
-            </div>
-          )}
-
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            className="ml-1 rounded-lg p-2 md:hidden"
-            style={{ color: "var(--text-nav)" }}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+    <header className="h-16 px-8 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-30 border-b border-gray-100/50">
+      {/* Search Bar - Moved to the right of Sidebar area */}
+      <div className="flex-1 max-w-lg">
+        <div className="relative group">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-green-600 transition-colors" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search reports, areas, or categories..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-green-50 border-transparent focus:border-green-200 focus:bg-white border rounded-xl outline-none transition-all text-[13px] font-medium"
+          />
         </div>
       </div>
 
-      {/* Mobile nav */}
-      {mobileOpen && (
-        <div
-          className="border-t px-4 pb-4 pt-2 md:hidden"
-          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+      {/* Right side actions */}
+      <div className="flex items-center gap-4">
+        <button className="p-2.5 text-gray-400 hover:text-green-600 bg-green-50 rounded-xl transition-all relative">
+          <Bell size={18} />
+          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white" />
+        </button>
+        
+        <Link
+          href="/report-issue"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold rounded-xl shadow-md shadow-green-600/10 hover:scale-105 active:scale-95 transition-all text-xs no-underline"
         >
-          <div className="grid gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium"
-                style={{
-                  color: isActive(href) ? "var(--primary)" : "var(--text-nav)",
-                  background: isActive(href) ? "var(--primary-light)" : "transparent",
-                }}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            ))}
+          <Plus size={16} />
+          New Report
+        </Link>
+
+        {user ? (
+          <div className="flex items-center gap-3 ml-2 border-l border-gray-100 pl-4">
+            <Link href="/profile" className="w-10 h-10 rounded-xl bg-green-50 border border-green-100 overflow-hidden cursor-pointer hover:border-green-300 transition-all flex items-center justify-center">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name || "User"} className="w-full h-full object-cover" />
+              ) : (
+                <UserIcon className="text-green-600" size={18} />
+              )}
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <Link
+            href="/login"
+            className="px-4 py-2 bg-gray-900 text-white font-bold rounded-xl text-xs no-underline ml-2"
+          >
+            Login
+          </Link>
+        )}
+      </div>
     </header>
   );
 }

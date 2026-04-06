@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, FileText, MapPin, MessageSquare, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 type FeedCardProps = {
@@ -68,52 +68,77 @@ export default function FeedCard({
   return (
     <Link
       href={`/reports/${id}`}
-      className="flex gap-4 rounded-2xl border p-4 transition hover:border-green-300"
-      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+      className="flex flex-col rounded-3xl border overflow-hidden transition-all hover:border-green-400 hover:shadow-2xl hover:shadow-green-900/10 group no-underline"
+      style={{ background: "white", borderColor: "var(--border)" }}
     >
+      {/* Image Top Half */}
       <div
-        className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border"
-        style={{ background: "var(--primary-light)", borderColor: "var(--border)" }}
+        className="h-56 w-full shrink-0 overflow-hidden bg-gray-50 relative"
       >
-        {imgSrc ? <img src={imgSrc} alt="" className="h-full w-full object-cover" /> : null}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-            {title}
-          </h2>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${sc}`}>
+        {imgSrc ? (
+          <img src={imgSrc} alt={title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-green-50/30">
+            <FileText className="text-green-600/20" size={40} />
+          </div>
+        )}
+        
+        {/* Status Badge Over Image */}
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+          <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-lg ${sc}`}>
             {STATUS_LABEL[status] ?? status.replace(/_/g, " ")}
           </span>
           {isEscalated && (
             <span
-              className="rounded-full px-2 py-0.5 text-xs font-semibold"
-              style={{ background: "#fef2f2", color: "#dc2626" }}
+              className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-lg bg-red-600 text-white"
             >
               Escalated
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          {areaName} · {category.replaceAll("_", " ")}
+      </div>
+
+      {/* Content Bottom Half */}
+      <div className="p-6 flex flex-col flex-1">
+        <div className="mb-3">
+          <h2 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-green-600 transition-colors">
+            {title}
+          </h2>
+          <div className="flex items-center gap-2 mt-1.5">
+            <MapPin size={12} className="text-gray-400" />
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+              {areaName}
+            </p>
+          </div>
+        </div>
+
+        <p className="text-xs font-medium text-gray-500 mb-6">
+          Category: <span className="text-gray-900 font-bold">{category.replaceAll("_", " ")}</span>
         </p>
-        <div className="mt-2 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleUpvote}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
-            style={{
-              background: userUpvoted ? "var(--primary-mint)" : "transparent",
-              color: userUpvoted ? "var(--primary)" : "var(--text-muted)",
-              borderColor: userUpvoted ? "var(--primary-border)" : "var(--border)",
-            }}
-          >
-            <ArrowUp className="h-3.5 w-3.5" />
-            {upvoteCount}
-          </button>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {commentCount} comments
-          </span>
+
+        <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleUpvote}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                userUpvoted 
+                ? "bg-green-600 text-white shadow-md shadow-green-600/20" 
+                : "bg-gray-50 text-gray-500 hover:bg-green-50 hover:text-green-600 border border-gray-100"
+              }`}
+            >
+              <ArrowUp className={`h-3.5 w-3.5 ${userUpvoted ? "animate-bounce" : ""}`} />
+              {upvoteCount}
+            </button>
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <MessageSquare size={14} />
+              <span className="text-[11px] font-bold">{commentCount}</span>
+            </div>
+          </div>
+          
+          <div className="text-green-600">
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </div>
         </div>
       </div>
     </Link>

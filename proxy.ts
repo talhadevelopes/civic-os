@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 
 import { PROTECTED_ROUTES } from "@/lib/protectedRoutes";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const needsAuth = PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));

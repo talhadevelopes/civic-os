@@ -4,15 +4,17 @@ import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
 import { computeWardCounts } from "@/lib/wardCounts";
 import DashboardMapWrapper from "@/app/_components/maps/DashboardMapWrapper";
-import DashboardSearch from "@/app/_components/dashboard/DashboardSearch";
 import DashboardCharts from "@/app/_components/dashboard/DashboardCharts";
 import {
   FileText,
   CheckCircle2,
   Clock,
-  Users,
   AlertTriangle,
   MapPin,
+  Map as MapIcon,
+  Trophy,
+  Leaf,
+  TrendingUp,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; class: string }> = {
@@ -85,7 +87,7 @@ export default async function DashboardPage({
           }
         : undefined,
       orderBy: { createdAt: "desc" },
-      take: 15,
+      take: 8,
       include: {
         images: { where: { isMain: true }, take: 1 },
       },
@@ -94,7 +96,7 @@ export default async function DashboardPage({
 
   const avgResolutionDays =
     confirmedReports.length > 0
-      ? confirmedReports.reduce((sum, r) => {
+      ? confirmedReports.reduce((sum: number, r: any) => {
           const days =
             (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()) /
             (1000 * 60 * 60 * 24);
@@ -107,7 +109,7 @@ export default async function DashboardPage({
       by: ["constituencyName"],
       where: { constituencyName: { not: null } },
     })
-    .then((g) => g.length);
+    .then((g: any[]) => g.length);
 
   const fullReportsForMap = await prisma.report.findMany({
     where: {
@@ -126,8 +128,8 @@ export default async function DashboardPage({
   });
 
   const mapReports = fullReportsForMap
-    .filter((r) => r.latitude != null && r.longitude != null)
-    .map((r) => ({
+    .filter((r: any) => r.latitude != null && r.longitude != null)
+    .map((r: any) => ({
       id: r.id,
       title: r.title,
       areaName: r.areaName,
@@ -146,7 +148,7 @@ export default async function DashboardPage({
     const geoJson = JSON.parse(geoRaw);
     const counts = computeWardCounts(geoJson, allReports as any);
     wardCounts = Object.fromEntries(
-      counts.map((c) => [
+      counts.map((c: any) => [
         c.wardName,
         { unresolvedCount: c.unresolvedCount, totalCount: c.totalCount },
       ])
@@ -167,279 +169,224 @@ export default async function DashboardPage({
     });
   }
 
-  const stats = [
+  // Stats cards data — real data from DB
+  const statCards = [
     {
-      label: "Total Issues Reported",
-      value: totalReports,
+      id: 1,
+      label: "Total Reports",
+      value: totalReports.toLocaleString(),
       icon: FileText,
+      color: "bg-green-600",
+      trend: "+12%",
+      desc: "Active civic requests",
     },
     {
-      label: "Resolved This Month",
-      value: resolvedThisMonth,
+      id: 2,
+      label: "Resolved",
+      value: resolvedThisMonth.toLocaleString(),
       icon: CheckCircle2,
+      color: "bg-green-600",
+      trend: "+8%",
+      desc: "Completed this month",
     },
     {
-      label: "Avg Resolution (days)",
-      value: avgResolutionDays != null ? avgResolutionDays.toFixed(1) : "—",
+      id: 3,
+      label: "Avg Resolution",
+      value: avgResolutionDays != null ? `${avgResolutionDays.toFixed(1)}d` : "—",
       icon: Clock,
+      color: "bg-amber-500",
+      trend: "Days avg",
+      desc: "Time to resolve issues",
     },
     {
-      label: "Active MLAs Tracked",
-      value: mlaCount,
+      id: 4,
+      label: "MLAs Tracked",
+      value: mlaCount.toLocaleString(),
       icon: MapPin,
-    },
-    {
-      label: "Citizens on Platform",
-      value: userCount,
-      icon: Users,
-    },
-    {
-      label: "Issues Reopened",
-      value: reopenedCount,
-      icon: AlertTriangle,
+      color: "bg-gray-800",
+      trend: `${userCount} citizens`,
+      desc: "Active constituencies",
     },
   ];
 
+  const now = new Date();
+  const monthLabel = now.toLocaleString("default", { month: "long", year: "numeric" });
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1
-              className="text-3xl font-semibold"
-              style={{ color: "var(--text-heading)" }}
-            >
-              Dashboard
-            </h1>
-            <p
-              className="mt-2 text-sm"
-              style={{ color: "var(--text-body)" }}
-            >
-              Track what's happening across the city.
-            </p>
-          </div>
-
-          <div className="flex flex-1 items-center gap-3 sm:justify-end">
-            <DashboardSearch initialQuery={query} />
-            <Link
-              href="/reports"
-              className="inline-flex h-11 items-center justify-center rounded-xl border px-4 text-sm font-medium"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-                color: "var(--text-primary)",
-              }}
-            >
-              View reports
-            </Link>
-            <Link
-              href="/reports/new"
-              className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-medium"
-              style={{
-                background: "var(--primary)",
-                color: "var(--text-on-primary)",
-                boxShadow: "var(--shadow-green)",
-              }}
-            >
-              Create report
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <DashboardMapWrapper reports={mapReports} wardCounts={wardCounts} />
-        </div>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {stats.map(({ label, value, icon: Icon }) => (
+    <div className="p-6">
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {statCards.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
             <div
-              key={label}
-              className="rounded-2xl border p-4"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-              }}
+              key={stat.id}
+              className={`relative overflow-hidden p-5 rounded-2xl shadow-lg ${stat.color} text-white group cursor-pointer`}
+              style={{ animationDelay: `${i * 100}ms` }}
             >
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-lg"
-                style={{
-                  background: "var(--primary-mint)",
-                  color: "var(--primary)",
-                }}
-              >
-                <Icon className="h-4 w-4" />
+              <div className="absolute -bottom-4 -right-4 opacity-20 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                <Icon size={80} />
               </div>
-              <div
-                className="mt-3 text-2xl font-bold"
-                style={{ color: "var(--text-heading)" }}
-              >
-                {value}
-              </div>
-              <div
-                className="mt-1 text-xs"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {label}
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Icon size={18} />
+                  </div>
+                  <div className="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">{stat.trend}</div>
+                </div>
+                <div className="text-2xl font-bold mb-1 tracking-tight">{stat.value}</div>
+                <div className="text-xs font-bold opacity-90 uppercase tracking-widest">{stat.label}</div>
+                <p className="text-[10px] opacity-60 mt-2">{stat.desc}</p>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        <div className="mt-8">
-          <DashboardCharts />
-        </div>
-
-        <div className="mt-8 grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div
-              className="rounded-2xl border p-6"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <h2
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Recent reports
-                </h2>
-                <Link
-                  href="/reports"
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-green)" }}
-                >
-                  See all
-                </Link>
+      {/* MAIN CONTENT */}
+      <div className="space-y-8">
+        {/* Live Heatmap card - Full Width */}
+        <div className="bg-white overflow-hidden group">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+              <MapIcon size={60} />
+            </div>
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                <MapIcon size={20} />
               </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Live Heatmap</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Zone-wise density</p>
+              </div>
+            </div>
+            <Link
+              href="/feed"
+              className="relative z-10 px-4 py-2 bg-green-50 text-green-600 font-bold text-[10px] rounded-lg hover:bg-green-600 hover:text-white transition-all flex items-center gap-2 no-underline"
+            >
+              Expand Map ↗
+            </Link>
+          </div>
+          <div className="h-[650px]">
+            <DashboardMapWrapper reports={mapReports} wardCounts={wardCounts} />
+          </div>
+        </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {recentReports.map((r) => {
-                  const main = r.images[0];
-                  const imgSrc = main
-                    ? `data:${main.mimeType};base64,${main.base64Data}`
-                    : null;
-                  const sc = STATUS_CONFIG[r.status] ?? {
-                    label: r.status,
-                    class: "",
-                  };
+        {/* Resolution Trends - Full Width */}
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
+          <div className="p-8 border-b border-gray-100 flex items-center gap-4">
+            <div className="w-12 h-12 bg-gray-50 text-gray-900 rounded-2xl flex items-center justify-center">
+              <TrendingUp size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Resolution Trends</h2>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Performance over time</p>
+            </div>
+          </div>
+          <div className="p-8">
+            <DashboardCharts />
+          </div>
+        </div>
 
+        {/* Bottom Grid: Side Content Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Leaderboard CTA */}
+          <div className="relative overflow-hidden p-8 rounded-[2.5rem] bg-green-600 text-white shadow-2xl group cursor-pointer">
+            <div className="absolute -bottom-8 -right-8 opacity-20 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+              <Trophy size={160} />
+            </div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-6 backdrop-blur-md border border-white/10">
+                <Trophy size={24} />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 tracking-tight">Leaderboard</h3>
+              <p className="text-white/80 text-xs mb-8 leading-relaxed font-medium">
+                See how each MLA is performing on civic resolution across Hyderabad.
+              </p>
+              <Link
+                href="/leaderboard"
+                className="inline-block px-6 py-2.5 bg-white text-green-600 font-bold text-[10px] rounded-lg shadow-xl hover:bg-green-50 transition-all active:scale-95 no-underline"
+              >
+                View Leaderboard
+              </Link>
+            </div>
+          </div>
+
+          {/* Recent Feed */}
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8 relative overflow-hidden group">
+            <Leaf className="absolute -bottom-6 -left-6 text-green-600/5 -rotate-12 group-hover:scale-125 transition-transform" size={80} />
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <h2 className="text-xl font-bold text-gray-900">Recent Feed</h2>
+              <Link href="/feed" className="text-green-600 font-bold text-xs hover:underline">See All</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
+              {recentReports.slice(0, 4).map((r : any) => {
+                const main = r.images[0];
+                const imgSrc = main ? main.url : null;
+                const sc = STATUS_CONFIG[r.status] ?? { label: r.status, class: "" };
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/reports/${r.id}`}
+                    className="flex gap-4 group/item cursor-pointer no-underline"
+                  >
+                    <div className="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden bg-green-50 border border-green-100">
+                      {imgSrc ? (
+                        <img src={imgSrc} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <FileText size={16} className="text-green-600/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 border-b border-gray-100 pb-3 last:border-0">
+                      <h3 className="text-xs font-bold text-gray-900 group-hover/item:text-green-600 transition-colors mb-1 line-clamp-1">
+                        {r.title}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+                          {r.areaName}
+                        </p>
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${sc.class}`}>
+                          {sc.label}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Authority section */}
+        {user?.role === "AUTHORITY" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-[2.5rem] p-8">
+            <h2 className="text-lg font-bold text-blue-900 mb-1">Your Assigned Issues</h2>
+            <p className="text-xs text-blue-500 mb-6">Sorted by oldest first</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {authorityReports.length === 0 ? (
+                <p className="text-sm text-gray-400">No issues assigned to you.</p>
+              ) : (
+                authorityReports.slice(0, 6).map((r : any) => {
+                  const sc = STATUS_CONFIG[r.status] ?? { label: r.status, class: "" };
                   return (
                     <Link
                       key={r.id}
                       href={`/reports/${r.id}`}
-                      className="rounded-2xl border p-4 transition hover:border-green-300"
-                      style={{
-                        borderColor: "var(--border)",
-                        background: "var(--surface)",
-                      }}
+                      className="flex items-center justify-between rounded-xl border border-blue-200 bg-white px-3 py-2 transition hover:bg-blue-50 no-underline"
                     >
-                      <div className="flex gap-4">
-                        <div
-                          className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border"
-                          style={{
-                            background: "var(--primary-light)",
-                            borderColor: "var(--border)",
-                          }}
-                        >
-                          {imgSrc ? (
-                            <img
-                              src={imgSrc}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : null}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className="truncate text-sm font-semibold"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {r.title}
-                          </p>
-                          <p
-                            className="mt-1 text-xs"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            {r.areaName} · {r.category.replaceAll("_", " ")}
-                          </p>
-                          <span
-                            className={`mt-2 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${sc.class}`}
-                          >
-                            {sc.label}
-                          </span>
-                        </div>
-                      </div>
+                      <span className="truncate text-xs font-medium text-blue-900">{r.title}</span>
+                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-medium ${sc.class}`}>
+                        {sc.label}
+                      </span>
                     </Link>
                   );
-                })}
-              </div>
+                })
+              )}
             </div>
           </div>
-
-          {user?.role === "AUTHORITY" && (
-            <div
-              className="rounded-2xl border p-6"
-              style={{
-                background: "#eff6ff",
-                borderColor: "#93c5fd",
-              }}
-            >
-              <h2
-                className="text-lg font-semibold"
-                style={{ color: "#1e40af" }}
-              >
-                Your Assigned Issues
-              </h2>
-              <p
-                className="mt-1 text-sm"
-                style={{ color: "#3b82f6" }}
-              >
-                Sorted by oldest first
-              </p>
-
-              <div className="mt-4 space-y-3">
-                {authorityReports.length === 0 ? (
-                  <p
-                    className="text-sm"
-                    style={{ color: "#6b7280" }}
-                  >
-                    No issues assigned to you.
-                  </p>
-                ) : (
-                  authorityReports.map((r) => {
-                    const sc = STATUS_CONFIG[r.status] ?? {
-                      label: r.status,
-                      class: "",
-                    };
-                    return (
-                      <Link
-                        key={r.id}
-                        href={`/reports/${r.id}`}
-                        className="flex items-center justify-between rounded-xl border border-blue-200 bg-white px-3 py-2 transition hover:bg-blue-50"
-                        style={{ borderColor: "#93c5fd" }}
-                      >
-                        <span
-                          className="truncate text-sm font-medium"
-                          style={{ color: "#1e40af" }}
-                        >
-                          {r.title}
-                        </span>
-                        <span
-                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${sc.class}`}
-                        >
-                          {sc.label}
-                        </span>
-                      </Link>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

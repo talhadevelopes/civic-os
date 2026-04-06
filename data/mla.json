@@ -1,0 +1,252 @@
+[
+  {
+    "constituency": "Serilingampally",
+    "mlaName": "Arekapudi Gandhi",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Kondapur", "Gachibowli", "Nanakramguda", "Manikonda", "Tellapur", "Financial District"],
+    "lat": 17.4956,
+    "lng": 78.3356,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Kukatpally",
+    "mlaName": "Madhavaram Krishna Rao",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["KPHB Colony", "Kukatpally", "Moosapet", "Balanagar", "Jeedimetla", "Bharat Nagar"],
+    "lat": 17.4948,
+    "lng": 78.3996,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Quthbullapur",
+    "mlaName": "K. P. Vivekanand Goud",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Quthbullapur", "Alwal", "ECIL X Roads", "Suraram", "Kompally", "Dundigal"],
+    "lat": 17.5308,
+    "lng": 78.4450,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Uppal",
+    "mlaName": "Bandari Lakshma Reddy",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Uppal", "Nacharam", "Habsiguda", "Ramanthapur", "Nagole", "NGRI Colony"],
+    "lat": 17.4012,
+    "lng": 78.5591,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Medchal",
+    "mlaName": "Chamakura Malla Reddy",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Medchal", "Dundigal", "Petbasheerabad", "Gundlapochampally", "Hyder Nagari"],
+    "lat": 17.6289,
+    "lng": 78.4843,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Patancheru",
+    "mlaName": "Gudem Mahipal Reddy",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Patancheru", "Bollaram", "Isnapur", "Miyapur", "Hafeezpet", "Nizampet"],
+    "lat": 17.5328,
+    "lng": 78.2642,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Malkajgiri",
+    "mlaName": "Marri Rajashekar Reddy",
+    "party": "BRS",
+    "yearsInOffice": 6,
+    "areas": ["Malkajgiri", "AS Rao Nagar", "Kushaiguda", "Kapra", "Neredmet", "ECIL"],
+    "lat": 17.4618,
+    "lng": 78.5163,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Secunderabad",
+    "mlaName": "T. Padma Rao Goud",
+    "party": "BRS",
+    "yearsInOffice": 14,
+    "areas": ["Secunderabad", "SD Road", "Paradise Circle", "Bowenpally", "East Marredpally", "Trimulgherry"],
+    "lat": 17.4399,
+    "lng": 78.4983,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Jubilee Hills",
+    "mlaName": "Maganti Gopinath",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Jubilee Hills", "Banjara Hills", "Film Nagar", "Madhapur", "Shaikpet", "Road No. 36"],
+    "lat": 17.4310,
+    "lng": 78.4068,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Khairatabad",
+    "mlaName": "Danam Nagender",
+    "party": "BRS",
+    "yearsInOffice": 14,
+    "areas": ["Khairatabad", "Somajiguda", "Begumpet", "Ameerpet", "Punjagutta", "Kavuri Hills"],
+    "lat": 17.4218,
+    "lng": 78.4619,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Nampally",
+    "mlaName": "Mohammed Majid Hussain",
+    "party": "AIMIM",
+    "yearsInOffice": 1,
+    "areas": ["Nampally", "Abids", "Himayatnagar", "Chapel Road", "King Koti", "Ram Nagar"],
+    "lat": 17.3850,
+    "lng": 78.4663,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Musheerabad",
+    "mlaName": "Muta Gopal",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Musheerabad", "Gandhinagar", "RTC X Roads", "Vidyanagar", "Narayanguda", "Parsigutta"],
+    "lat": 17.4396,
+    "lng": 78.4778,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Amberpet",
+    "mlaName": "Kaleru Venkatesh",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Amberpet", "Tarnaka", "Mallapur", "Nagole", "Habsiguda", "Vidyanagar"],
+    "lat": 17.4099,
+    "lng": 78.5155,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Malakpet",
+    "mlaName": "Ahmed Bin Abdullah Balala",
+    "party": "AIMIM",
+    "yearsInOffice": 10,
+    "areas": ["Malakpet", "Chaderghat", "Dilsukhnagar", "Saidabad", "Santoshnagar", "New Malakpet"],
+    "lat": 17.3746,
+    "lng": 78.5033,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Charminar",
+    "mlaName": "Mir Zulfeqar Ali",
+    "party": "AIMIM",
+    "yearsInOffice": 1,
+    "areas": ["Charminar", "Laad Bazaar", "Madina", "Shalibanda", "Pathergatti", "Hussaini Alam"],
+    "lat": 17.3616,
+    "lng": 78.4747,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Bahadurpura",
+    "mlaName": "Mohammed Mubeen",
+    "party": "AIMIM",
+    "yearsInOffice": 1,
+    "areas": ["Bahadurpura", "Attapur", "Jiyaguda", "Mehmoodguda", "Santoshnagar"],
+    "lat": 17.3568,
+    "lng": 78.4551,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Yakutpura",
+    "mlaName": "Syed Jaffar Hussain",
+    "party": "AIMIM",
+    "yearsInOffice": 1,
+    "areas": ["Yakutpura", "Falaknuma", "Saidabad", "Moghalpura", "Habeeb Nagar", "Dabeerpura"],
+    "lat": 17.3521,
+    "lng": 78.5031,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Karwan",
+    "mlaName": "Kausar Mohiuddin",
+    "party": "AIMIM",
+    "yearsInOffice": 14,
+    "areas": ["Karwan", "Mehdipatnam", "Tolichowki", "Langar Houz", "Ferozguda", "Golconda"],
+    "lat": 17.3934,
+    "lng": 78.4391,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Goshamahal",
+    "mlaName": "T. Raja Singh",
+    "party": "BJP",
+    "yearsInOffice": 10,
+    "areas": ["Goshamahal", "Kachiguda", "Sultan Bazaar", "Lakdikapul", "Nampally Station", "Afzalgunj"],
+    "lat": 17.3766,
+    "lng": 78.4728,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Sanathnagar",
+    "mlaName": "Talasani Srinivas Yadav",
+    "party": "BRS",
+    "yearsInOffice": 14,
+    "areas": ["Sanathnagar", "Borabanda", "Erragadda", "SR Nagar", "Balkampet", "Bharat Nagar"],
+    "lat": 17.4419,
+    "lng": 78.4291,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Rajendranagar",
+    "mlaName": "T. Prakash Goud",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Rajendranagar", "Attapur", "Bandlaguda", "Kishanbagh", "Budvel", "Narsingi"],
+    "lat": 17.3130,
+    "lng": 78.3985,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Maheshwaram",
+    "mlaName": "Patlolla Sabitha Indra Reddy",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["Maheshwaram", "Tukkuguda", "Kismatpur", "Kandukur", "Adibatla", "Shamshabad"],
+    "lat": 17.2434,
+    "lng": 78.4489,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Lal Bahadur Nagar",
+    "mlaName": "Devireddy Sudhir Reddy",
+    "party": "BRS",
+    "yearsInOffice": 10,
+    "areas": ["LB Nagar", "Saroornagar", "Meerpet", "Kothapet", "Sagar Ring Road", "Hayathnagar"],
+    "lat": 17.3269,
+    "lng": 78.5535,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Chandrayangutta",
+    "mlaName": "Akbaruddin Owaisi",
+    "party": "AIMIM",
+    "yearsInOffice": 19,
+    "areas": ["Chandrayangutta", "Asif Nagar", "Jalpally", "Mailardevpally", "Falaknuma", "Dabeerpura"],
+    "lat": 17.3369,
+    "lng": 78.4956,
+    "photoUrl": null
+  },
+  {
+    "constituency": "Secunderabad Cantonment",
+    "mlaName": "G. Lasya Nanditha",
+    "party": "BRS",
+    "yearsInOffice": 1,
+    "areas": ["Secunderabad Cantonment", "Trimulgherry", "Marredpally", "Bolarum", "East Marredpally", "Kavadiguda"],
+    "lat": 17.4473,
+    "lng": 78.5171,
+    "photoUrl": null
+  }
+]

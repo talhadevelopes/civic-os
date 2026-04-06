@@ -1,10 +1,9 @@
-import NavbarServer from "@/app/_components/global/NavbarServer";
+import SidebarLayout from "@/app/_components/global/SidebarLayout";
 
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <NavbarServer />
+    <SidebarLayout>
       {children}
-    </>
+    </SidebarLayout>
   );
 }

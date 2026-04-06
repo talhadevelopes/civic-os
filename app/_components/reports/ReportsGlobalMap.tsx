@@ -1,15 +1,11 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { useState, useMemo, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+import "leaflet/dist/leaflet.css";
+import Link from "next/link";
+import { Maximize2, X } from "lucide-react";
 
 export type GlobalMapReport = {
   id: string;
@@ -20,102 +16,48 @@ export type GlobalMapReport = {
   longitude: number;
 };
 
-function FlyToLocation({ coords }: { coords: { lat: number; lng: number } | null }) {
-  const map = useMap();
-  if (coords) {
-    map.flyTo([coords.lat, coords.lng], 14, { duration: 1.0 });
-  }
-  return null;
-}
-
-function categoryLabel(category: string) {
-  return category.replaceAll("_", " ");
-}
-
 function categoryColor(category: string) {
-  switch (category) {
-    case "POTHOLES":
-      return "#16a34a";
-    case "GARBAGE":
-      return "#111827";
-    case "WATER_LEAKAGE":
-      return "#2563eb";
-    case "DRAINAGE_SEWAGE":
-      return "#7c3aed";
-    case "STREETLIGHT":
-      return "#f59e0b";
-    case "ROAD_DAMAGE":
-      return "#dc2626";
-    case "ILLEGAL_DUMPING":
-      return "#0f766e";
-    case "STRAY_ANIMALS":
-      return "#ea580c";
-    case "TRAFFIC_SIGNAL":
-      return "#db2777";
-    case "ENCROACHMENT":
-      return "#475569";
-    default:
-      return "#64748b";
-  }
+  const colors: Record<string, string> = {
+    STREET_LIGHT: "#f59e0b",
+    POTHOLE: "#ef4444",
+    GARBAGE: "#10b981",
+    WATER_SUPPLY: "#3b82f6",
+    DRAINAGE: "#8b5cf6",
+    OTHER: "#6b7280",
+  };
+  return colors[category] || colors.OTHER;
 }
 
 function createCategoryIcon(category: string, isSelected: boolean) {
-  const label = categoryLabel(category);
   const bg = isSelected ? "#16a34a" : categoryColor(category);
-  const border = isSelected ? "#15803d" : "rgba(0,0,0,0.22)";
-  const shadow = isSelected ? "0 6px 18px rgba(22,163,74,0.35)" : "0 4px 14px rgba(0,0,0,0.25)";
-  const scale = isSelected ? 1.12 : 1;
-
-  // IMPORTANT: fixed size + fixed anchor so it doesn't jump/disappear.
-  const w = 110;
-  const h = 34;
+  const scale = isSelected ? 1.4 : 1;
+  const size = 16;
 
   return L.divIcon({
     className: "custom-report-icon",
     html: `
       <div style="
-        width:${w}px;
-        height:${h}px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
+        width:${size}px;
+        height:${size}px;
         background:${bg};
-        color:white;
-        border:2px solid ${border};
-        border-radius:999px;
-        font-size:12px;
-        font-weight:800;
-        letter-spacing:0.02em;
-        white-space:nowrap;
-        box-shadow:${shadow};
-        font-family: system-ui, sans-serif;
+        border:2px solid white;
+        border-radius:50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         transform: scale(${scale});
         transform-origin: center;
         cursor: pointer;
-        user-select:none;
-      ">${label}</div>
+      "></div>
     `,
-    iconSize: [w, h],
-    iconAnchor: [w / 2, h / 2],
-    popupAnchor: [0, -h / 2],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
-}
-
-function legendItems() {
-  return [
-    { key: "POTHOLES", label: "Potholes" },
-    { key: "GARBAGE", label: "Garbage" },
-    { key: "WATER_LEAKAGE", label: "Water Leakage" },
-    { key: "DRAINAGE_SEWAGE", label: "Drainage / Sewage" },
-    { key: "STREETLIGHT", label: "Streetlight" },
-    { key: "ROAD_DAMAGE", label: "Road Damage" },
-    { key: "OTHER", label: "Other" },
-  ];
 }
 
 export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const selected = useMemo(() => reports.find((r) => r.id === selectedId) ?? null, [reports, selectedId]);
 
@@ -127,88 +69,80 @@ export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport
 
   if (!reports.length) {
     return (
-      <div
-        className="w-full rounded-2xl overflow-hidden border flex items-center justify-center"
-        style={{ height: "420px", background: "var(--primary-light)", borderColor: "var(--border)" }}
-      >
-        <p style={{ color: "var(--text-body)" }}>No reports with location data yet.</p>
+      <div className="w-full h-full bg-green-50 flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500 font-bold">No reports with location data yet.</p>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden rounded-2xl border" style={{ height: "520px", borderColor: "var(--border)" }}>
-      <MapContainer center={center} zoom={11} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        />
-
-        <FlyToLocation coords={selected ? { lat: selected.latitude, lng: selected.longitude } : null} />
-
-        {reports.map((r) => {
-          const isSelected = selectedId === r.id;
-          return (
-            <Marker
-              key={r.id}
-              position={[r.latitude, r.longitude]}
-              icon={createCategoryIcon(r.category, isSelected)}
-              riseOnHover
-              eventHandlers={{
-                click: () => setSelectedId(isSelected ? null : r.id),
-              }}
-              zIndexOffset={isSelected ? 1000 : 0}
-            >
-              <Popup autoPan>
-                <div style={{ minWidth: 220 }}>
-                  <p style={{ fontWeight: 800, color: "#111827", marginBottom: 6 }}>{r.title}</p>
-                  <p style={{ fontSize: 12, color: "#4b5563" }}>Area: {r.areaName}</p>
-                  <p style={{ fontSize: 12, color: "#4b5563" }}>Category: {categoryLabel(r.category)}</p>
-                  <a href={`/reports/${r.id}`} style={{ fontSize: 12, color: "#16a34a", fontWeight: 700 }}>
-                    View report
-                  </a>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
-
-      <div
-        className="absolute top-4 right-4 z-[1000] rounded-2xl border p-3 shadow-xl"
-        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-      >
-        <p className="text-xs font-semibold" style={{ color: "var(--text-muted)", letterSpacing: "0.06em" }}>
-          LEGEND
-        </p>
-        <div className="mt-2 grid gap-2">
-          {legendItems().map((it) => (
-            <div key={it.key} className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full" style={{ background: categoryColor(it.key) }} />
-              <span className="text-xs" style={{ color: "var(--text-body)" }}>
-                {it.label}
-              </span>
-            </div>
-          ))}
-        </div>
+    <div 
+      ref={containerRef} 
+      className={`relative overflow-hidden transition-all duration-300 bg-white ${
+        isFullScreen ? "fixed inset-0 z-[10000]" : "relative h-full"
+      }`} 
+    >
+      {/* Full Screen Toggle Button */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[10001]">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsFullScreen(!isFullScreen);
+          }}
+          className="flex items-center gap-2 px-6 py-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 text-gray-900 font-bold text-sm hover:scale-105 transition-all active:scale-95"
+        >
+          {isFullScreen ? (
+            <>
+              <X size={18} />
+              Exit Full Screen
+            </>
+          ) : (
+            <>
+              <Maximize2 size={18} />
+              View Full Map
+            </>
+          )}
+        </button>
       </div>
 
-      {selected ? (
-        <div
-          className="absolute bottom-4 left-4 z-[1000] rounded-2xl border p-4 shadow-xl"
-          style={{ width: 320, maxWidth: "calc(100% - 32px)", background: "var(--surface)", borderColor: "var(--border)" }}
-        >
-          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-            {selected.title}
-          </p>
-          <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-            {selected.areaName} · {categoryLabel(selected.category)}
-          </p>
-          <a href={`/reports/${selected.id}`} className="mt-3 inline-block text-sm font-semibold" style={{ color: "var(--text-green)" }}>
-            Open
-          </a>
-        </div>
-      ) : null}
+      <MapContainer 
+        center={center} 
+        zoom={11} 
+        style={{ height: "100%", width: "100%" }} 
+        scrollWheelZoom
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        />
+
+        {reports.map((report) => (
+          <Marker
+            key={report.id}
+            position={[report.latitude, report.longitude]}
+            icon={createCategoryIcon(report.category, selectedId === report.id)}
+            eventHandlers={{
+              click: () => setSelectedId(report.id),
+            }}
+          >
+            <Popup>
+              <div className="p-2 min-w-[150px]">
+                <h3 className="font-bold text-sm mb-1">{report.title}</h3>
+                <p className="text-xs text-gray-500 mb-2">{report.areaName}</p>
+                <Link
+                  href={`/reports/${report.id}`}
+                  className="text-xs font-bold text-green-600 hover:underline"
+                >
+                  View Details →
+                </Link>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
     </div>
   );
 }

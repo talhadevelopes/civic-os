@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
 import IssueDetailClient from "@/app/_components/common/IssueDetailClient";
+import { PageShell } from "@/app/_components/global/AppSidebar";
+import { ChevronLeft, FileText } from "lucide-react";
 
 export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,32 +16,32 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
     include: {
       createdBy: { select: { id: true, name: true, role: true } },
       images: true,
-      timeline: {
-        orderBy: { createdAt: "asc" },
-      },
+      timeline: { orderBy: { createdAt: "asc" } },
       comments: {
         orderBy: { createdAt: "asc" },
-        include: {
-          user: { select: { id: true, name: true, role: true } },
-        },
+        include: { user: { select: { id: true, name: true, role: true } } },
       },
     },
   });
 
   if (!report) {
     return (
-      <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-        <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-          <p style={{ color: "var(--text-body)" }}>Report not found.</p>
-          <Link href="/reports" style={{ color: "var(--text-green)" }} className="mt-3 inline-block">
-            Back to reports
-          </Link>
+      <PageShell>
+        <div className="flex items-center justify-center min-h-screen p-10">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <FileText size={32} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Report not found</h1>
+            <Link href="/feed" className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-2xl text-sm no-underline mt-4">
+              <ChevronLeft size={18} /> Back to Feed
+            </Link>
+          </div>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
-  // Check if current user has upvoted
   let userUpvoted = false;
   if (userId) {
     const upvote = await prisma.upvote.findUnique({
@@ -48,30 +50,33 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
     userUpvoted = !!upvote;
   }
 
-  // Serialize dates for client component
   const serializedReport = {
     ...report,
     createdAt: report.createdAt.toISOString(),
     updatedAt: report.updatedAt.toISOString(),
     escalatedAt: report.escalatedAt?.toISOString() ?? null,
-    images: report.images.map((img) => ({
-      ...img,
-      createdAt: img.createdAt.toISOString(),
-    })),
-    timeline: report.timeline.map((t) => ({
-      ...t,
-      createdAt: t.createdAt.toISOString(),
-    })),
-    comments: report.comments.map((c) => ({
-      ...c,
-      createdAt: c.createdAt.toISOString(),
-    })),
+    images: report.images.map((img : any) => ({ ...img, createdAt: img.createdAt.toISOString() })),
+    timeline: report.timeline.map((t : any) => ({ ...t, createdAt: t.createdAt.toISOString() })),
+    comments: report.comments.map((c : any) => ({ ...c, createdAt: c.createdAt.toISOString() })),
   };
 
   return (
-    <IssueDetailClient
-      initialReport={serializedReport as any}
-      initialUserUpvoted={userUpvoted}
-    />
+    <PageShell>
+      {/* Back nav */}
+      <div className="px-8 pt-6">
+        <Link
+          href="/feed"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-green-600 font-bold text-sm transition-colors no-underline group"
+        >
+          <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Feed
+        </Link>
+      </div>
+
+      <IssueDetailClient
+        initialReport={serializedReport as any}
+        initialUserUpvoted={userUpvoted}
+      />
+    </PageShell>
   );
 }

@@ -1,18 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap, GeoJSON } from "react-leaflet";
+import { useEffect, useRef, useMemo, useState } from "react";
+import { MapContainer, TileLayer, useMap, GeoJSON, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-
 import "leaflet.heat";
+import { Maximize2, X } from "lucide-react";
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
+// Types
 export type MapReport = {
   id: string;
   title: string;
@@ -25,66 +19,50 @@ export type MapReport = {
 
 export type WardCountMap = Record<string, { unresolvedCount: number; totalCount: number }>;
 
-type LayerMode = "zones" | "heat" | "pins";
-
-function getColorForCount(count: number): string {
-  if (count === 0) return "#bbf7d0";
-  if (count <= 5) return "#4ade80";
-  if (count <= 15) return "#f59e0b";
-  return "#ef4444";
-}
-
-function getPinColor(status: string): string {
-  switch (status) {
-    case "REPORTED":
-    case "ASSIGNED":
-      return "#ef4444";
-    case "IN_PROGRESS":
-    case "REOPENED":
-      return "#f59e0b";
-    case "RESOLVED_PENDING_VERIFICATION":
-      return "#a855f7";
-    case "CONFIRMED_FIXED":
-      return "#16a34a";
-    case "REJECTED":
-      return "#6b7280";
-    default:
-      return "#64748b";
-  }
-}
-
-function categoryLabel(cat: string) {
-  return cat.replaceAll("_", " ");
-}
-
-function HeatLayer({ reports }: { reports: MapReport[] }) {
+// ── Heatmap Component ──
+function HeatmapLayer({ points }: { points: [number, number, number][] }) {
   const map = useMap();
-  const heatRef = useRef<L.HeatLayer | null>(null);
 
   useEffect(() => {
-    if (!(L as any).heatLayer) return;
-    const points: [number, number, number][] = reports.map((r) => [
-      r.latitude,
-      r.longitude,
-      0.5,
-    ]);
-    const layer = (L as any).heatLayer(points, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
+    if (!map || !points.length) return;
+    
+    // @ts-ignore
+    if (!L.heatLayer) {
+      console.warn("leaflet.heat not yet available");
+      return;
+    }
+
+    // @ts-ignore
+    const heat = L.heatLayer(points, {
+      radius: 40,
+      blur: 25,
       max: 1,
-      gradient: { 0.4: "blue", 0.6: "lime", 0.8: "yellow", 1: "red" },
+      gradient: {
+        0.4: "#fbbf24", // amber
+        0.6: "#f97316", // orange
+        0.8: "#ef4444", // red
+        1.0: "#7f1d1d", // dark red
+      },
     });
-    map.addLayer(layer);
-    heatRef.current = layer;
+
+    heat.addTo(map);
     return () => {
-      map.removeLayer(layer);
-      heatRef.current = null;
+      if (map && heat) {
+        map.removeLayer(heat);
+      }
     };
-  }, [map, reports]);
+  }, [map, points]);
 
   return null;
 }
+
+// ── Icons ──
+const createPinIcon = (color: string) => L.divIcon({
+  className: "custom-pin",
+  html: `<div style="width:14px; height:14px; background:${color}; border:2px solid white; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7]
+});
 
 export default function DashboardMapClient({
   reports,
@@ -93,211 +71,155 @@ export default function DashboardMapClient({
   reports: MapReport[];
   wardCounts: WardCountMap;
 }) {
-  const [layerMode, setLayerMode] = useState<LayerMode>("zones");
-  const [geoJson, setGeoJson] = useState<GeoJSON.GeoJsonObject | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [geoData, setGeoData] = useState<any>(null);
+  const [view, setView] = useState<"heat" | "pins" | "zones">("zones");
 
+  // Load GeoJSON for Ward Shapes
   useEffect(() => {
     fetch("/data/ghmc-wards.geojson")
-      .then((r) => r.json())
-      .then(setGeoJson)
-      .catch(() => setGeoJson(null));
+      .then(res => {
+        if (!res.ok) throw new Error("GeoJSON fetch failed");
+        return res.json();
+      })
+      .then(data => setGeoData(data))
+      .catch(err => console.error("Failed to load geojson:", err));
   }, []);
-  const reportsWithCoords = useMemo(
-    () => reports.filter((r) => r.latitude != null && r.longitude != null),
-    [reports]
-  );
 
-  const center: [number, number] = useMemo(() => {
-    if (reportsWithCoords.length) {
-      const lat =
-        reportsWithCoords.reduce((s, r) => s + r.latitude, 0) /
-        reportsWithCoords.length;
-      const lng =
-        reportsWithCoords.reduce((s, r) => s + r.longitude, 0) /
-        reportsWithCoords.length;
-      return [lat, lng];
-    }
-    return [17.385, 78.4867];
-  }, [reportsWithCoords]);
+  const heatPoints = useMemo<[number, number, number][]>(() => {
+    return (reports || []).map((r) => [r.latitude, r.longitude, 1]);
+  }, [reports]);
 
-  const geoJsonStyle = useCallback(
-    (feature?: GeoJSON.Feature) => {
-      if (!feature?.properties) return { fillColor: "#e5e7eb", weight: 1 };
-      const name = (feature.properties as any).name as string;
-      const counts = wardCounts[name] ?? { unresolvedCount: 0, totalCount: 0 };
-      const fill = getColorForCount(counts.unresolvedCount);
-      return {
-        fillColor: fill,
-        fillOpacity: 0.6,
-        color: "#94a3b8",
-        weight: 1,
-      };
-    },
-    [wardCounts]
-  );
-
-  const geoJsonOnEach = useCallback(
-    (feature: GeoJSON.Feature, layer: L.Layer) => {
-      const name = (feature?.properties as any)?.name ?? "Unknown";
-      const counts = wardCounts[name] ?? { unresolvedCount: 0, totalCount: 0 };
-      
-      // Enhanced popup with more info
-      const density = counts.totalCount > 0 ? ((counts.unresolvedCount / counts.totalCount) * 100).toFixed(0) : "0";
-      const statusColor = counts.unresolvedCount === 0 ? "#16a34a" : counts.unresolvedCount <= 5 ? "#f59e0b" : "#ef4444";
-      
-      layer.bindPopup(
-        `<div style="min-width:220px;padding:8px">
-          <strong style="font-size:14px;color:#111827">${name}</strong><br/>
-          <div style="margin-top:8px;font-size:12px;color:#4b5563">
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span>Open Issues:</span>
-              <strong style="color:${statusColor}">${counts.unresolvedCount}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span>Total Issues:</span>
-              <strong>${counts.totalCount}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-              <span>Unresolved %:</span>
-              <strong style="color:${statusColor}">${density}%</strong>
-            </div>
-          </div>
-          <a href="/reports" style="color:#16a34a;font-weight:600;font-size:12px;text-decoration:none">View all reports →</a>
-        </div>`
-      );
-
-      // Add hover tooltip (tooltip instead of popup on hover)
-      layer.on({
-        mouseover: (e) => {
-          const layer = e.target;
-          layer.setStyle({
-            weight: 3,
-            color: "#16a34a",
-            fillOpacity: 0.8,
-          });
-          layer.bringToFront();
-        },
-        mouseout: (e) => {
-          const layer = e.target;
-          const counts = wardCounts[name] ?? { unresolvedCount: 0, totalCount: 0 };
-          const fill = getColorForCount(counts.unresolvedCount);
-          layer.setStyle({
-            weight: 1,
-            color: "#94a3b8",
-            fillOpacity: 0.6,
-            fillColor: fill,
-          });
-        },
-      });
-    },
-    [wardCounts]
-  );
-
-  const createPinIcon = (status: string) => {
-    const c = getPinColor(status);
-    return L.divIcon({
-      className: "custom-pin",
-      html: `<div style="width:14px;height:14px;background:${c};border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7],
+  // FUZZY MATCHING FOR WARD NAMES
+  const getStatsForWard = (wardNameFromGeo: string) => {
+    if (!wardNameFromGeo) return null;
+    
+    // Direct match
+    if (wardCounts[wardNameFromGeo]) return wardCounts[wardNameFromGeo];
+    
+    // Fuzzy match
+    const cleanGeoName = wardNameFromGeo.toLowerCase().replace(/ward\s+\d+\s+/i, "").trim();
+    const key = Object.keys(wardCounts).find(k => {
+      const cleanKey = k.toLowerCase().replace(/ward\s+\d+\s+/i, "").trim();
+      return cleanKey === cleanGeoName || cleanKey.includes(cleanGeoName) || cleanGeoName.includes(cleanKey);
     });
+    
+    return key ? wardCounts[key] : null;
+  };
+
+  const onEachWard = (feature: any, layer: any) => {
+    const wardName = feature.properties?.name || feature.properties?.ward_name;
+    const stats = getStatsForWard(wardName);
+    if (stats) {
+      layer.bindPopup(`
+        <div style="padding: 8px; font-family: sans-serif;">
+          <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${wardName}</div>
+          <div style="font-size: 12px; color: #374151;">Unresolved Issues: <b>${stats.unresolvedCount}</b></div>
+          <div style="font-size: 12px; color: #6b7280;">Total Reports: ${stats.totalCount}</div>
+        </div>
+      `);
+    }
+  };
+
+  const wardStyle = (feature: any) => {
+    const wardName = feature.properties?.name || feature.properties?.ward_name;
+    const stats = getStatsForWard(wardName);
+    const count = stats?.unresolvedCount || 0;
+    
+    // DARKER COLORS FOR CHOROPLETH
+    let color = "#f8fafc"; 
+    if (count > 15) color = "#7f1d1d";      // deep dark red
+    else if (count > 10) color = "#b91c1c"; // red-700
+    else if (count > 5) color = "#dc2626";  // red-600
+    else if (count > 2) color = "#ea580c";  // orange-600
+    else if (count > 0) color = "#16a34a";  // green-600
+
+    return {
+      fillColor: color,
+      weight: 1.5,
+      opacity: 1,
+      color: "#ffffff",
+      fillOpacity: 0.8, 
+    };
   };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border"
-      style={{ height: "480px", borderColor: "var(--border)" }}
+    <div 
+      className={`relative w-full bg-white overflow-hidden transition-all duration-300 ${
+        isFullScreen ? "fixed inset-0 z-[1000000] !h-screen !w-screen" : "h-full min-h-[500px]"
+      }`}
     >
-      <div
-        className="absolute top-4 left-4 z-[1000] flex gap-1 rounded-xl border p-1 shadow-lg"
-        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-      >
-        {(["zones", "heat", "pins"] as const).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setLayerMode(mode)}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors"
-            style={{
-              background: layerMode === mode ? "var(--primary)" : "transparent",
-              color: layerMode === mode ? "var(--text-on-primary)" : "var(--text-body)",
-            }}
-          >
-            {mode}
-          </button>
-        ))}
+      {/* Map Controls Overlay */}
+      <div className="absolute top-6 left-6 z-[1000001] flex flex-col gap-3">
+        <div className="bg-white border-2 border-gray-200 rounded-2xl p-1 shadow-2xl flex gap-1">
+          {[
+            { id: "heat", label: "Heatmap" },
+            { id: "pins", label: "Pins" },
+            { id: "zones", label: "Zones" }
+          ].map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setView(opt.id as any)}
+              className={`px-5 py-2 rounded-xl text-xs font-black transition-all ${
+                view === opt.id ? "bg-green-600 text-white shadow-lg" : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Full Screen Button */}
+      <div className="absolute top-6 right-6 z-[1000001]">
+        <button
+          onClick={() => setIsFullScreen(!isFullScreen)}
+          className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-black rounded-2xl shadow-2xl hover:bg-red-700 transition-all active:scale-95 text-xs uppercase tracking-widest"
+        >
+          {isFullScreen ? <><X size={18} /> EXIT FULL SCREEN</> : <><Maximize2 size={18} /> Full Screen</>}
+        </button>
       </div>
 
       <MapContainer
-        center={center}
+        center={[17.385, 78.4867]}
         zoom={11}
         style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom
+        scrollWheelZoom={true}
+        zoomControl={true}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {layerMode === "zones" && geoJson && (
-          <GeoJSON
-            key="zones"
-            data={geoJson}
-            style={geoJsonStyle as any}
-            onEachFeature={geoJsonOnEach as any}
+        {/* 1. Heatmap Layer */}
+        {view === "heat" && <HeatmapLayer points={heatPoints} />}
+
+        {/* 2. Pins Layer */}
+        {view === "pins" && (reports || []).map(r => (
+          <Marker 
+            key={r.id} 
+            position={[r.latitude, r.longitude]} 
+            icon={createPinIcon("#16a34a")}
+          >
+            <Popup>
+              <div className="p-1">
+                <div className="font-bold text-sm">{r.title}</div>
+                <div className="text-xs text-gray-500">{r.areaName}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* 3. Zones Layer (GeoJSON) */}
+        {view === "zones" && geoData && (
+          <GeoJSON 
+            data={geoData} 
+            style={wardStyle} 
+            onEachFeature={onEachWard} 
           />
         )}
-
-        {layerMode === "heat" && <HeatLayer reports={reportsWithCoords} />}
-
-        {layerMode === "pins" &&
-          reportsWithCoords.map((r) => (
-            <Marker
-              key={r.id}
-              position={[r.latitude, r.longitude]}
-              icon={createPinIcon(r.status)}
-            >
-              <Popup autoPan>
-                <div style={{ minWidth: 200 }}>
-                  <p style={{ fontWeight: 700, color: "#111827", marginBottom: 6 }}>
-                    {r.title}
-                  </p>
-                  <p style={{ fontSize: 12, color: "#4b5563" }}>
-                    {r.areaName} · {categoryLabel(r.category)}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: getPinColor(r.status),
-                      fontWeight: 600,
-                      marginTop: 4,
-                    }}
-                  >
-                    {r.status.replace(/_/g, " ")}
-                  </p>
-                  <a
-                    href={`/reports/${r.id}`}
-                    style={{ fontSize: 12, color: "#16a34a", fontWeight: 700, marginTop: 6, display: "inline-block" }}
-                  >
-                    View issue →
-                  </a>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
       </MapContainer>
-
-      <div
-        className="absolute bottom-4 right-4 z-[1000] rounded-xl border p-3 shadow-lg"
-        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-      >
-        <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-          {layerMode === "zones" && "Zones: color = open issue density"}
-          {layerMode === "heat" && "Heat: issue clusters"}
-          {layerMode === "pins" && "Pins: color = status"}
-        </p>
-      </div>
     </div>
   );
 }
-

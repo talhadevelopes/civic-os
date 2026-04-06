@@ -12,9 +12,9 @@ async function gatherContext(query: string): Promise<string> {
 
   if (q.includes("kukatpally") || q.includes("unresolved") || q.includes("top") || q.includes("issue")) {
     const kukatpally = allReports.filter(
-      (r) => r.areaName?.toLowerCase().includes("kukatpally") && !["CONFIRMED_FIXED", "REJECTED"].includes(r.status)
+      (r : any) => r.areaName?.toLowerCase().includes("kukatpally") && !["CONFIRMED_FIXED", "REJECTED"].includes(r.status)
     );
-    parts.push(`Unresolved issues in Kukatpally: ${JSON.stringify(kukatpally.slice(0, 10).map((r) => ({ id: r.id, title: r.title, status: r.status, area: r.areaName })))}`);
+    parts.push(`Unresolved issues in Kukatpally: ${JSON.stringify(kukatpally.slice(0, 10).map((r : any) => ({ id: r.id, title: r.title, status: r.status, area: r.areaName })))}`);
   }
 
   if (q.includes("mla") || q.includes("resolution") || q.includes("pothole") || q.includes("worst")) {
@@ -24,22 +24,22 @@ async function gatherContext(query: string): Promise<string> {
       where: { category: "POTHOLES" },
       _count: { id: true },
     });
-    parts.push(`MLA stats: ${JSON.stringify(mlas.slice(0, 15))}`);
+    parts.push(`MLA stats: ${JSON.stringify(mlas.slice(0, 15).map((r : any) => ({ name: r.name, constituency: r.constituencyName, potholes: r.potholes })))}`);
     parts.push(`Potholes by MLA: ${JSON.stringify(potholeByMla)}`);
   }
 
   if (q.includes("drainage") || q.includes("secunderabad")) {
     const drainage = allReports.filter(
-      (r) =>
+      (r : any) =>
         (r.category?.includes("DRAINAGE") || r.category?.includes("SEWAGE")) &&
         r.areaName?.toLowerCase().includes("secunderabad")
     );
-    parts.push(`Drainage issues in Secunderabad: ${drainage.length}. Sample: ${JSON.stringify(drainage.slice(0, 5).map((r) => ({ id: r.id, title: r.title, status: r.status })))}`);
+    parts.push(`Drainage issues in Secunderabad: ${drainage.length}. Sample: ${JSON.stringify(drainage.slice(0, 5).map((r : any) => ({ id: r.id, title: r.title, status: r.status })))}`);
   }
 
   if (q.includes("score") || q.includes("health") || q.includes("civic")) {
     const total = allReports.length;
-    const fixed = allReports.filter((r) => r.status === "CONFIRMED_FIXED").length;
+    const fixed = allReports.filter((r : any ) => r.status === "CONFIRMED_FIXED").length;
     const rate = total > 0 ? (fixed / total) * 100 : 0;
     parts.push(`Civic stats: Total issues ${total}, Confirmed fixed ${fixed}, Resolution rate ${rate.toFixed(1)}%`);
   }
@@ -47,7 +47,7 @@ async function gatherContext(query: string): Promise<string> {
   if (parts.length === 0) {
     const byStatus = await prisma.report.groupBy({ by: ["status"], _count: { id: true } });
     const byArea = await prisma.report.groupBy({ by: ["areaName"], _count: { id: true } });
-    const topAreas = byArea.sort((a, b) => b._count.id - a._count.id).slice(0, 10);
+    const topAreas = byArea.sort((a : any, b : any) => b._count.id - a._count.id).slice(0, 10);
     parts.push(`General: total ${allReports.length} reports. By status: ${JSON.stringify(byStatus)}. Top areas: ${JSON.stringify(topAreas)}`);
   }
 

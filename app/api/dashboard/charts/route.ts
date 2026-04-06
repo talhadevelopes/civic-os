@@ -36,16 +36,16 @@ export async function GET() {
   });
 
   return NextResponse.json({
-    statusBreakdown: statusBreakdown.map((s) => ({
+    statusBreakdown: statusBreakdown.map((s : any) => ({
       name: s.status.replace(/_/g, " "),
       value: s._count.id,
     })),
     categoryBreakdown: categoryBreakdown
-      .map((c) => ({
+      .map((c : any) => ({
         name: c.category.replace(/_/g, " ").slice(0, 12),
         count: c._count.id,
       }))
-      .sort((a, b) => b.count - a.count),
+      .sort((a : any, b : any) => b.count - a.count),
     monthlyTrend: months,
   });
 }

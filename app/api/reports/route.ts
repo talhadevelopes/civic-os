@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
 import { requireServerSession } from "@/lib/authServer";
 import { lookupMlaByArea } from "@/public/data/areaToMla";
@@ -15,41 +14,35 @@ const REPORT_CATEGORY_VALUES = [
   "STRAY_ANIMALS",
   "TRAFFIC_SIGNAL",
   "ENCROACHMENT",
+  "BUILDING",
+  "FLOODING",
   "OTHER",
 ] as const;
 
 type ReportCategoryValue = (typeof REPORT_CATEGORY_VALUES)[number];
 
-const MAX_IMAGE_BYTES = 1_000_000;
+// Upload a single file to Cloudinary unsigned preset, return secure_url
+async function uploadToCloudinary(file: File): Promise<string | null> {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+  if (!cloudName || !uploadPreset) return null;
 
-async function fileToBase64(file: File): Promise<{ mimeType: string; base64Data: string; bytes: number }> {
-  const buf = await file.arrayBuffer();
-  const bytes = buf.byteLength;
-  const mimeType = file.type || "application/octet-stream";
-  const base64Data = Buffer.from(buf).toString("base64");
-  return { mimeType, base64Data, bytes };
-}
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", uploadPreset);
+  form.append("folder", "civicos/reports");
 
-function normalizeReportImages(images: unknown) {
-  if (!Array.isArray(images)) return [];
-  return images
-    .map((img) => {
-      if (!img || typeof img !== "object") return null;
-      const anyImg = img as any;
-      const isMain = Boolean(anyImg.isMain);
-      const mimeType = typeof anyImg.mimeType === "string" ? anyImg.mimeType : null;
-      const base64Data = typeof anyImg.base64Data === "string" ? anyImg.base64Data : null;
-
-      if (!mimeType || !base64Data) return null;
-      return { isMain, mimeType, base64Data };
-    })
-    .filter(Boolean) as { isMain: boolean; mimeType: string; base64Data: string }[];
-}
-
-function base64ByteLength(base64: string) {
-  const normalized = base64.includes(",") ? base64.split(",").pop() ?? "" : base64;
-  const padding = normalized.endsWith("==") ? 2 : normalized.endsWith("=") ? 1 : 0;
-  return Math.floor((normalized.length * 3) / 4) - padding;
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.secure_url ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET() {
@@ -60,7 +53,6 @@ export async function GET() {
       images: { where: { isMain: true }, take: 1 },
     },
   });
-
   return NextResponse.json({ reports });
 }
 
@@ -77,46 +69,37 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
 
-  const title = String(form.get("title") ?? "").trim();
-  const areaName = String(form.get("areaName") ?? "").trim();
-  const mapAreaText = String(form.get("mapAreaText") ?? "").trim();
-  const description = String(form.get("description") ?? "").trim();
-  const category = String(form.get("category") ?? "").trim();
+  const title       = String(form.get("title")       ?? "").trim();
+  const areaName    = String(form.get("areaName")     ?? "").trim();
+  const mapAreaText = String(form.get("mapAreaText")  ?? "").trim();
+  const description = String(form.get("description")  ?? "").trim();
+  const category    = String(form.get("category")     ?? "").trim();
+  const latRaw      = String(form.get("latitude")     ?? "").trim();
+  const lngRaw      = String(form.get("longitude")    ?? "").trim();
 
-  const latitudeRaw = String(form.get("latitude") ?? "").trim();
-  const longitudeRaw = String(form.get("longitude") ?? "").trim();
-
-  const latitude = latitudeRaw ? Number(latitudeRaw) : null;
-  const longitude = longitudeRaw ? Number(longitudeRaw) : null;
+  const latitude  = latRaw  ? Number(latRaw)  : null;
+  const longitude = lngRaw ? Number(lngRaw) : null;
 
   if (!title || !areaName || !description || !category) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
-
   if (!REPORT_CATEGORY_VALUES.includes(category as ReportCategoryValue)) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
   }
 
+  // Upload images to Cloudinary, collect URLs
+  const imagesToCreate: { isMain: boolean; url: string }[] = [];
+
   const mainImage = form.get("mainImage");
-  const bodyImages = form.getAll("bodyImages");
-
-  const imagesToCreate: { isMain: boolean; mimeType: string; base64Data: string }[] = [];
-
   if (mainImage instanceof File && mainImage.size > 0) {
-    const img = await fileToBase64(mainImage);
-    if (img.bytes > MAX_IMAGE_BYTES) {
-      return NextResponse.json({ error: "Main image too large (max 1MB)" }, { status: 400 });
-    }
-    imagesToCreate.push({ isMain: true, mimeType: img.mimeType, base64Data: img.base64Data });
+    const url = await uploadToCloudinary(mainImage);
+    if (url) imagesToCreate.push({ isMain: true, url });
   }
 
-  for (const entry of bodyImages.slice(0, 5)) {
+  for (const entry of form.getAll("bodyImages").slice(0, 4)) {
     if (!(entry instanceof File) || entry.size === 0) continue;
-    const img = await fileToBase64(entry);
-    if (img.bytes > MAX_IMAGE_BYTES) {
-      return NextResponse.json({ error: "Body image too large (max 1MB)" }, { status: 400 });
-    }
-    imagesToCreate.push({ isMain: false, mimeType: img.mimeType, base64Data: img.base64Data });
+    const url = await uploadToCloudinary(entry);
+    if (url) imagesToCreate.push({ isMain: false, url });
   }
 
   const mla = lookupMlaByArea(areaName);
@@ -133,9 +116,7 @@ export async function POST(req: Request) {
       mlaName: mla?.mla_name ?? null,
       constituencyName: mla?.constituency ?? null,
       createdById: session.user.id,
-      images: {
-        create: imagesToCreate,
-      },
+      images: { create: imagesToCreate },
     },
     include: {
       createdBy: { select: { id: true, name: true, role: true } },
@@ -143,17 +124,14 @@ export async function POST(req: Request) {
     },
   });
 
-  // Create audit trail entries
-  const userName = session.user.name || "Citizen";
-
   await prisma.issueTimeline.create({
     data: {
       issueId: report.id,
       actorId: session.user.id,
-      actorName: userName,
+      actorName: session.user.name || "Citizen",
       actorRole: "CITIZEN",
       action: "REPORTED",
-      note: `Issue reported by ${userName}.`,
+      note: `Issue reported by ${session.user.name || "Citizen"}.`,
     },
   });
 

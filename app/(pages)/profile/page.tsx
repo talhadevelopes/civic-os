@@ -45,7 +45,7 @@ export default async function ProfilePage() {
 
   // Impact stats
   const totalReported = reports.length;
-  const confirmedFixed = reports.filter((r) => r.status === "CONFIRMED_FIXED").length;
+  const confirmedFixed = reports.filter((r : any) => r.status === "CONFIRMED_FIXED").length;
 
   const upvotesGiven = await prisma.upvote.count({
     where: { userId: user.id },
@@ -182,9 +182,9 @@ export default async function ProfilePage() {
               </p>
             )}
 
-            {reports.map((r) => {
+            {reports.map((r : any) => {
               const main = r.images[0];
-              const imgSrc = main ? `data:${main.mimeType};base64,${main.base64Data}` : null;
+              const imgSrc = main ? main.url : null;
               const sc = STATUS_CONFIG[r.status] ?? { label: r.status, class: "" };
 
               return (
@@ -234,7 +234,7 @@ export default async function ProfilePage() {
                 You haven&apos;t commented on any issues yet.
               </p>
             ) : (
-              comments.map((c) => (
+              comments.map((c : any) => (
                 <Link
                   key={c.id}
                   href={`/reports/${c.issueId}`}

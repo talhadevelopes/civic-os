@@ -12,6 +12,7 @@ const UNRESOLVED_STATUSES = [
 export type MlaStatsRow = {
   mlaName: string;
   constituency: string;
+  photoUrl: string | null;
   slug: string;
   totalIssues: number;
   confirmedFixed: number;
@@ -37,12 +38,24 @@ export function slugToConstituency(slug: string): string | null {
   return match?.constituency ?? null;
 }
 
-export function getMlaBySlug(slug: string): { mlaName: string; constituency: string } | null {
+export async function getMlaBySlug(slug: string): Promise<{ mlaName: string; constituency: string; photoUrl: string | null } | null> {
   const match = AREA_TO_MLA.find(
     (a) => constituencyToSlug(a.constituency) === slug
   );
   if (!match) return null;
-  return { mlaName: match.mla_name, constituency: match.constituency };
+  
+  const dbMla = await prisma.mla.findFirst({
+    where: {
+      name: match.mla_name,
+      constituency: match.constituency
+    }
+  });
+
+  return { 
+    mlaName: match.mla_name, 
+    constituency: match.constituency,
+    photoUrl: dbMla?.photoUrl ?? null
+  };
 }
 
 export function getConstituencySlugs(): string[] {
@@ -59,19 +72,35 @@ export function getConstituencySlugs(): string[] {
 }
 
 export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
-  const reports = await prisma.report.findMany({
-    where: {
-      mlaName: { not: null },
-      constituencyName: { not: null },
-    },
-    select: {
-      mlaName: true,
-      constituencyName: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const [reports, mlas] = await Promise.all([
+    prisma.report.findMany({
+      where: {
+        mlaName: { not: null },
+        constituencyName: { not: null },
+      },
+      select: {
+        mlaName: true,
+        constituencyName: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.mla.findMany({
+      select: {
+        name: true,
+        constituency: true,
+        photoUrl: true,
+      },
+    }),
+  ]);
+
+  const mlaPhotoMap = new Map<string, string | null>();
+  for (const m of mlas) {
+    if (m.name && m.constituency) {
+      mlaPhotoMap.set(`${m.name}|${m.constituency}`, m.photoUrl);
+    }
+  }
 
   const byKey = new Map<string, MlaStatsRow>();
 
@@ -84,6 +113,7 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
       byKey.set(key, {
         mlaName,
         constituency,
+        photoUrl: mlaPhotoMap.get(key) ?? null,
         slug: constituencyToSlug(constituency),
         totalIssues: 0,
         confirmedFixed: 0,
@@ -99,55 +129,24 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
     const row = byKey.get(key)!;
     row.totalIssues += 1;
 
-    if (r.status === "CONFIRMED_FIXED") row.confirmedFixed += 1;
-    else if (UNRESOLVED_STATUSES.includes(r.status as any)) {
+    if (r.status === "CONFIRMED_FIXED") {
+      row.confirmedFixed += 1;
+      const days = (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+      row.avgResolutionDays = row.avgResolutionDays === null ? days : (row.avgResolutionDays + days) / 2;
+    } else if (UNRESOLVED_STATUSES.includes(r.status as any)) {
       row.pending += 1;
-      const daysOpen =
-        (Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysOpen >= 30) row.ignoredCount += 1;
-    } else if (r.status === "REOPENED") row.reopened += 1;
-    else if (r.status === "REJECTED") row.rejected += 1;
-  }
-
-  // Compute resolution rate and avg days
-  for (const row of byKey.values()) {
-    row.resolutionRate =
-      row.totalIssues > 0 ? (row.confirmedFixed / row.totalIssues) * 100 : 0;
-  }
-
-  // Avg resolution time: need confirmed issues with updatedAt - createdAt
-  const confirmedReports = await prisma.report.findMany({
-    where: {
-      status: "CONFIRMED_FIXED",
-      mlaName: { not: null },
-      constituencyName: { not: null },
-    },
-    select: {
-      mlaName: true,
-      constituencyName: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  const resolutionDaysByKey = new Map<string, number[]>();
-  for (const r of confirmedReports) {
-    const key = `${r.mlaName}|${r.constituencyName}`;
-    const days =
-      (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()) /
-      (1000 * 60 * 60 * 24);
-    if (!resolutionDaysByKey.has(key)) resolutionDaysByKey.set(key, []);
-    resolutionDaysByKey.get(key)!.push(days);
-  }
-
-  for (const row of byKey.values()) {
-    const key = `${row.mlaName}|${row.constituency}`;
-    const days = resolutionDaysByKey.get(key);
-    if (days && days.length > 0) {
-      row.avgResolutionDays =
-        days.reduce((a, b) => a + b, 0) / days.length;
+      const age = (Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (age >= 30) row.ignoredCount += 1;
     }
+
+    if (r.status === "REOPENED") row.reopened += 1;
+    if (r.status === "REJECTED") row.rejected += 1;
   }
 
-  return Array.from(byKey.values());
+  const result = Array.from(byKey.values());
+  for (const row of result) {
+    row.resolutionRate = row.totalIssues > 0 ? (row.confirmedFixed / row.totalIssues) * 100 : 0;
+  }
+
+  return result;
 }

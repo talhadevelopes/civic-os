@@ -14,8 +14,26 @@ import {
   ChevronDown,
   Upload,
   MessageSquare,
+  AlertCircle,
+  MapPin,
+  Users,
+  History,
+  FileText,
+  Camera,
+  Maximize2,
+  Share2,
+  Flag,
+  HardHat,
+  Wrench,
+  CheckCircle,
+  MessageCircle,
+  ExternalLink,
+  Plus,
 } from "lucide-react";
 
+// ─────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────
 type TimelineEntry = {
   id: string;
   actorName: string;
@@ -36,8 +54,7 @@ type Comment = {
 type ReportImage = {
   id: string;
   isMain: boolean;
-  mimeType: string;
-  base64Data: string;
+  url: string;
 };
 
 type Report = {
@@ -66,6 +83,9 @@ type Report = {
   createdBy: { id: string; name: string; role: string };
 };
 
+// ─────────────────────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; class: string }> = {
   REPORTED: { label: "Reported", class: "status-reported" },
   ASSIGNED: { label: "Assigned", class: "status-assigned" },
@@ -83,36 +103,51 @@ const STATUS_OPTIONS_FOR_AUTHORITY: Record<string, { value: string; label: strin
   ],
   ASSIGNED: [
     { value: "IN_PROGRESS", label: "Mark In Progress" },
-    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo — awaiting citizen approval)" },
+    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo)" },
     { value: "REJECTED", label: "Reject" },
   ],
   IN_PROGRESS: [
-    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo — awaiting citizen approval)" },
+    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo)" },
     { value: "REJECTED", label: "Reject" },
   ],
   REOPENED: [
     { value: "IN_PROGRESS", label: "Mark In Progress" },
-    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo — awaiting citizen approval)" },
+    { value: "RESOLVED_PENDING_VERIFICATION", label: "✅ Resolved (Upload fix photo)" },
     { value: "REJECTED", label: "Reject" },
   ],
 };
 
+// ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    day: "numeric", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
   });
 }
 
 function daysSince(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
 }
 
+function getTimelineIcon(role: string, action: string) {
+  if (action.includes("report") || role === "CITIZEN") return <FileText size={12} />;
+  if (action.includes("assignment") || action.includes("ASSIGN")) return <HardHat size={12} />;
+  if (action.includes("status") || role === "AUTHORITY") return <Wrench size={12} />;
+  return <CheckCircle size={12} />;
+}
+
+function getTimelineColors(role: string) {
+  if (role === "CITIZEN") return { dot: "bg-blue-500", badge: "text-blue-600 border-blue-200" };
+  if (role === "SYSTEM") return { dot: "bg-slate-500", badge: "text-slate-600 border-slate-200" };
+  if (role === "AUTHORITY") return { dot: "bg-amber-500", badge: "text-amber-600 border-amber-200" };
+  return { dot: "bg-green-600", badge: "text-green-600 border-green-200" };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────
 export default function IssueDetailClient({
   initialReport,
   initialUserUpvoted,
@@ -141,14 +176,11 @@ export default function IssueDetailClient({
   const [commentLoading, setCommentLoading] = useState(false);
   const [comments, setComments] = useState<Comment[]>(initialReport.comments);
 
-  // Verification state
+  // Verification
   const [verifyLoading, setVerifyLoading] = useState(false);
 
   useEffect(() => {
-    if (!fixPhotoFile) {
-      setFixPhotoPreview(null);
-      return;
-    }
+    if (!fixPhotoFile) { setFixPhotoPreview(null); return; }
     const url = URL.createObjectURL(fixPhotoFile);
     setFixPhotoPreview(url);
     return () => URL.revokeObjectURL(url);
@@ -165,7 +197,6 @@ export default function IssueDetailClient({
     }
   }, [report.id]);
 
-  // Upvote toggle
   async function handleUpvote() {
     const res = await fetch(`/api/reports/${report.id}/upvote`, { method: "POST" });
     if (res.ok) {
@@ -178,27 +209,18 @@ export default function IssueDetailClient({
     }
   }
 
-  // Authority status update
   async function handleStatusUpdate() {
     if (!selectedStatus) return;
     setActionLoading(true);
     setActionError(null);
-
     try {
       let fixPhotoUrl: string | null = null;
-
       if (selectedStatus === "RESOLVED_PENDING_VERIFICATION") {
-        if (!fixPhotoFile) {
-          setActionError("Please upload a fix photo");
-          setActionLoading(false);
-          return;
-        }
-        // Convert to base64 data URL
+        if (!fixPhotoFile) { setActionError("Please upload a fix photo"); setActionLoading(false); return; }
         const buf = await fixPhotoFile.arrayBuffer();
         const base64 = Buffer.from(buf).toString("base64");
         fixPhotoUrl = `data:${fixPhotoFile.type};base64,${base64}`;
       }
-
       const res = await fetch(`/api/reports/${report.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -209,18 +231,8 @@ export default function IssueDetailClient({
           rejectionReason: selectedStatus === "REJECTED" ? rejectionReason : undefined,
         }),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update status");
-      }
-
-      // Reset form
-      setSelectedStatus("");
-      setActionNote("");
-      setRejectionReason("");
-      setFixPhotoFile(null);
-
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed to update status"); }
+      setSelectedStatus(""); setActionNote(""); setRejectionReason(""); setFixPhotoFile(null);
       await refreshReport();
       toast.success("Status updated successfully");
     } catch (err: any) {
@@ -231,7 +243,6 @@ export default function IssueDetailClient({
     }
   }
 
-  // Citizen verification
   async function handleVerify(verified: boolean) {
     setVerifyLoading(true);
     try {
@@ -240,11 +251,7 @@ export default function IssueDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verified }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        toast.error(data.error || "Verification failed");
-        return;
-      }
+      if (!res.ok) { const d = await res.json(); toast.error(d.error || "Verification failed"); return; }
       await refreshReport();
       toast.success(verified ? "Fix confirmed! Issue marked as resolved." : "Issue reopened. Authority will be notified.");
     } finally {
@@ -252,12 +259,10 @@ export default function IssueDetailClient({
     }
   }
 
-  // Add comment
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault();
     if (!commentText.trim()) return;
     setCommentLoading(true);
-
     try {
       const res = await fetch(`/api/reports/${report.id}/comments`, {
         method: "POST",
@@ -279,16 +284,11 @@ export default function IssueDetailClient({
     }
   }
 
+  // Derived values
   const mainImage = report.images.find((x) => x.isMain);
   const bodyImages = report.images.filter((x) => !x.isMain);
-  const mainSrc = mainImage
-    ? `data:${mainImage.mimeType};base64,${mainImage.base64Data}`
-    : null;
-  const statusConfig = STATUS_CONFIG[report.status] ?? {
-    label: report.status,
-    class: "",
-  };
-
+  const mainSrc = mainImage ? mainImage.url : null;
+  const statusConfig = STATUS_CONFIG[report.status] ?? { label: report.status, class: "" };
   const isReporter = user?.id === report.createdById;
   const isAuthority = user?.role === "AUTHORITY";
   const isPendingVerification = report.status === "RESOLVED_PENDING_VERIFICATION";
@@ -296,414 +296,425 @@ export default function IssueDetailClient({
   const daysOpen = daysSince(report.createdAt);
   const isEscalated = report.escalated || (daysOpen >= 30 && !["CONFIRMED_FIXED", "REJECTED"].includes(report.status));
 
+  // ─────────────────────────────────────────────────────────
+  // Render — new 2-column layout
+  // ─────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
-        {/* Escalation banner */}
-        {isEscalated && (
-          <div className="alert-escalated mb-6 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            ⚠️ This issue has been unresolved for {daysOpen} days. It has been escalated.
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="rounded-2xl border p-6" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="bg-slate-50 min-h-screen">
+      {/* ── Top header bar ── */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-bold" style={{ color: "var(--text-heading)" }}>
-                  {report.title}
-                </h1>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${statusConfig.class}`}
-                >
-                  {statusConfig.label}
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {report.id.slice(0, 8).toUpperCase()}
                 </span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-3 text-sm" style={{ color: "var(--text-body)" }}>
-                <span>
-                  Area: <strong style={{ color: "var(--text-primary)" }}>{report.areaName}</strong>
+                <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
+                  {report.category.replaceAll("_", " ")}
                 </span>
-                <span>•</span>
-                <span>{report.category.replaceAll("_", " ")}</span>
-                {report.mlaName && (
+                {report.areaName && (
                   <>
-                    <span>•</span>
-                    <span>
-                      MLA: <strong style={{ color: "var(--text-primary)" }}>{report.mlaName}</strong>
-                      {report.constituencyName && (
-                        <span style={{ color: "var(--text-muted)" }}> ({report.constituencyName})</span>
-                      )}
+                    <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <MapPin size={10} /> {report.areaName}
                     </span>
                   </>
                 )}
               </div>
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                Reported by {report.createdBy.name} · {formatDate(report.createdAt)}
-              </p>
+              <h1 className="text-base font-bold text-slate-900 leading-tight truncate max-w-lg">
+                {report.title}
+              </h1>
             </div>
+          </div>
 
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* Upvote */}
             <button
               onClick={handleUpvote}
-              className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors"
-              style={{
-                borderColor: userUpvoted ? "var(--primary-border)" : "var(--border)",
-                background: userUpvoted ? "var(--primary-mint)" : "var(--surface)",
-                color: userUpvoted ? "var(--primary)" : "var(--text-body)",
-              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-bold transition-all ${
+                userUpvoted
+                  ? "bg-green-50 border-green-300 text-green-600"
+                  : "bg-white border-slate-200 text-slate-500 hover:border-green-300"
+              }`}
             >
               <ArrowUp className="h-4 w-4" />
               {upvoteCount}
             </button>
-          </div>
 
-          {/* Description */}
-          <p className="mt-5 text-sm leading-relaxed" style={{ color: "var(--text-body)" }}>
-            {report.description}
-          </p>
-
-          {/* Rejection reason */}
-          {report.status === "REJECTED" && report.rejectionReason && (
-            <div
-              className="mt-4 rounded-xl border px-4 py-3"
-              style={{ borderColor: "#fca5a5", background: "#fef2f2" }}
-            >
-              <p className="text-xs font-semibold" style={{ color: "#dc2626" }}>
-                Rejection Reason (Public)
-              </p>
-              <p className="mt-1 text-sm" style={{ color: "#7f1d1d" }}>
-                {report.rejectionReason}
-              </p>
+            {/* Status */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border ${statusConfig.class}`}>
+              <Clock size={11} />
+              {statusConfig.label}
             </div>
-          )}
-        </div>
 
-        {/* Before vs After photos */}
-        {mainSrc && (
-          <div className="mt-6">
-            <div
-              className={`grid gap-4 ${report.fixPhotoUrl ? "sm:grid-cols-2" : ""}`}
-            >
-              <div className="rounded-2xl border p-4" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                  📷 Before — Citizen&apos;s Report
-                </p>
-                <div className="mt-2 overflow-hidden rounded-xl">
-                  <img src={mainSrc} alt="Before" className="h-60 w-full object-cover" />
-                </div>
+            {/* Escalated badge */}
+            {isEscalated && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-xl text-[10px] font-bold uppercase tracking-wider border border-red-200">
+                <AlertCircle size={11} /> Escalated · {daysOpen}d
               </div>
+            )}
+          </div>
+        </div>
+      </header>
 
-              {report.fixPhotoUrl && (
-                <div className="rounded-2xl border p-4" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-                  <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                    ✅ After — Authority&apos;s Fix
-                  </p>
-                  <div className="mt-2 overflow-hidden rounded-xl">
-                    <img src={report.fixPhotoUrl} alt="After" className="h-60 w-full object-cover" />
+      {/* ── Main 2-col grid ── */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* ═══ LEFT COL (2/3): Image + Testimony + Audit Trail ═══ */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* Image Gallery */}
+            {mainSrc && (
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="aspect-video relative group">
+                  <img
+                    src={mainSrc}
+                    alt="Before — Citizen's Report"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-4 right-4 flex gap-2">
+                    <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
+                      <Maximize2 size={16} />
+                    </button>
+                    <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
+                      <Camera size={16} />
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Body images */}
-        {bodyImages.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {bodyImages.map((img) => (
-              <div key={img.id} className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--border)" }}>
-                <img
-                  src={`data:${img.mimeType};base64,${img.base64Data}`}
-                  alt=""
-                  className="h-36 w-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Citizen Verification Panel */}
-        {isPendingVerification && isReporter && (
-          <div
-            className="mt-6 rounded-2xl border p-6"
-            style={{ background: "#faf5ff", borderColor: "#d8b4fe" }}
-          >
-            <h2 className="text-lg font-bold" style={{ color: "#7c3aed" }}>
-              Your Approval Required — Verify the Fix
-            </h2>
-            <p className="mt-2 text-sm" style={{ color: "#6b21a8" }}>
-              The authority has marked this issue as resolved and uploaded a fix photo as proof of work
-              (see Before vs After above). Please verify: Is the fix satisfactory?
-            </p>
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => handleVerify(true)}
-                disabled={verifyLoading}
-                className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white"
-                style={{ background: "var(--primary)" }}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Confirmed Fixed
-              </button>
-              <button
-                onClick={() => handleVerify(false)}
-                disabled={verifyLoading}
-                className="flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold"
-                style={{ borderColor: "#fca5a5", color: "#dc2626", background: "#fef2f2" }}
-              >
-                <XCircle className="h-4 w-4" />
-                Still Broken
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Authority Action Panel */}
-        {isAuthority && availableTransitions.length > 0 && (
-          <div
-            className="mt-6 rounded-2xl border p-6"
-            style={{ background: "#eff6ff", borderColor: "#93c5fd" }}
-          >
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5" style={{ color: "#2563eb" }} />
-              <h2 className="text-lg font-bold" style={{ color: "#1e40af" }}>
-                Authority Actions
-              </h2>
-            </div>
-
-            <div className="mt-4 grid gap-3">
-              <label className="grid gap-2 text-sm" style={{ color: "#1e40af" }}>
-                Update Status
-                <div className="relative">
-                  <select
-                    className="h-11 w-full appearance-none rounded-xl border bg-white px-3 pr-10 text-sm outline-none"
-                    style={{ borderColor: "#93c5fd" }}
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                  >
-                    <option value="">— Select action —</option>
-                    {availableTransitions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                    style={{ color: "#6b7280" }}
-                  />
-                </div>
-              </label>
-
-              {selectedStatus === "RESOLVED_PENDING_VERIFICATION" && (
-                <label
-                  className="grid gap-2 rounded-xl border-2 border-dashed p-4"
-                  style={{ borderColor: "#93c5fd", background: "#f0f7ff" }}
-                >
-                  <span className="flex items-center gap-1 font-semibold" style={{ color: "#1e40af" }}>
-                    <Upload className="h-4 w-4" />
-                    Fix Photo — Proof of Work (required)
-                  </span>
-                  <p className="text-xs" style={{ color: "#3b82f6" }}>
-                    Upload a photo showing the completed fix. The citizen will see this before approving.
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setFixPhotoFile(e.target.files?.[0] ?? null)}
-                    className="h-11 rounded-xl border bg-white px-3 text-sm"
-                    style={{ borderColor: "#93c5fd" }}
-                  />
-                  {fixPhotoPreview && (
-                    <div className="overflow-hidden rounded-xl">
-                      <img src={fixPhotoPreview} alt="Fix preview" className="h-40 w-full object-cover" />
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">
+                      {report.createdBy.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{report.createdBy.name}</p>
+                      <p className="text-[10px] text-slate-500">{formatDate(report.createdAt)}</p>
+                    </div>
+                  </div>
+                  {bodyImages.length > 0 && (
+                    <div className="flex gap-2">
+                      {bodyImages.slice(0, 3).map((img) => (
+                        <div key={img.id} className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
+                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      <button className="text-[10px] font-bold text-green-600 hover:underline">View All</button>
                     </div>
                   )}
-                </label>
-              )}
-
-              {selectedStatus === "REJECTED" && (
-                <label className="grid gap-2 text-sm" style={{ color: "#1e40af" }}>
-                  Rejection Reason (required, will be public)
-                  <textarea
-                    className="min-h-[80px] rounded-xl border bg-white px-3 py-2 text-sm outline-none"
-                    style={{ borderColor: "#93c5fd" }}
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="Why is this issue being rejected?"
-                  />
-                </label>
-              )}
-
-              <label className="grid gap-2 text-sm" style={{ color: "#1e40af" }}>
-                Note (optional)
-                <input
-                  className="h-11 rounded-xl border bg-white px-3 text-sm outline-none"
-                  style={{ borderColor: "#93c5fd" }}
-                  value={actionNote}
-                  onChange={(e) => setActionNote(e.target.value)}
-                  placeholder="e.g. Team dispatched, expected resolution by Friday"
-                />
-              </label>
-
-              {actionError && (
-                <div
-                  className="rounded-xl border px-3 py-2 text-sm"
-                  style={{ borderColor: "#fca5a5", background: "#fef2f2", color: "#dc2626" }}
-                >
-                  {actionError}
                 </div>
-              )}
+              </div>
+            )}
 
-              <button
-                onClick={handleStatusUpdate}
-                disabled={!selectedStatus || actionLoading}
-                className="mt-1 inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white disabled:opacity-50"
-                style={{ background: "#2563eb" }}
-              >
-                {actionLoading ? "Updating..." : "Submit Update"}
-              </button>
-            </div>
-          </div>
-        )}
+            {/* Fix Photo (After) */}
+            {report.fixPhotoUrl && (
+              <div className="bg-white border border-green-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-3 bg-green-50 border-b border-green-100 flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-green-600" />
+                  <span className="text-xs font-bold text-green-700">After — Authority&apos;s Fix (Proof of Work)</span>
+                </div>
+                <div className="aspect-video">
+                  <img src={report.fixPhotoUrl} alt="After fix" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
 
-        {/* Audit Trail / Timeline */}
-        <div className="mt-6 rounded-2xl border p-6" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-          <h2 className="text-lg font-bold" style={{ color: "var(--text-heading)" }}>
-            Audit Trail
-          </h2>
+            {/* Rejection reason */}
+            {report.status === "REJECTED" && report.rejectionReason && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
+                <p className="text-xs font-bold text-red-600 mb-1">Rejection Reason (Public)</p>
+                <p className="text-sm text-red-800">{report.rejectionReason}</p>
+              </div>
+            )}
 
-          <div className="mt-4">
-            {report.timeline.length === 0 ? (
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                No timeline entries yet.
+            {/* Citizen Testimony */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <MessageCircle size={14} /> Citizen Testimony
+              </h3>
+              <p className="text-slate-700 leading-relaxed text-sm italic border-l-4 border-green-200 pl-4 py-1">
+                &ldquo;{report.description}&rdquo;
               </p>
-            ) : (
-              <div className="relative pl-6">
-                {/* Vertical line */}
-                <div
-                  className="absolute left-[9px] top-2 h-[calc(100%-16px)] w-0.5"
-                  style={{ background: "var(--primary-border)" }}
-                />
+            </div>
 
-                <div className="grid gap-0">
+            {/* Citizen Verification Panel */}
+            {isPendingVerification && isReporter && (
+              <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6 shadow-sm">
+                <h2 className="text-base font-bold text-purple-900 mb-2">
+                  Your Approval Required — Verify the Fix
+                </h2>
+                <p className="text-sm text-purple-700 mb-5 leading-relaxed">
+                  The authority has marked this issue as resolved and uploaded a fix photo. Is the fix satisfactory?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleVerify(true)}
+                    disabled={verifyLoading}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-bold rounded-xl shadow-sm disabled:opacity-50"
+                  >
+                    <CheckCircle2 size={16} /> Confirmed Fixed
+                  </button>
+                  <button
+                    onClick={() => handleVerify(false)}
+                    disabled={verifyLoading}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-red-50 border border-red-200 text-red-600 text-sm font-bold rounded-xl disabled:opacity-50"
+                  >
+                    <XCircle size={16} /> Still Broken
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Audit Trail */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <History size={14} /> Audit Trail
+                </h3>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 uppercase tracking-wider">
+                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse" />
+                  Live
+                </div>
+              </div>
+
+              {report.timeline.length === 0 ? (
+                <p className="text-sm text-slate-400">No timeline entries yet.</p>
+              ) : (
+                <div className="space-y-5 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
                   {report.timeline.map((entry, i) => {
-                    const isLast = i === report.timeline.length - 1;
+                    const isLatest = i === report.timeline.length - 1;
+                    const colors = getTimelineColors(entry.actorRole);
                     return (
-                      <div key={entry.id} className="relative pb-5">
-                        {/* Dot */}
-                        <div
-                          className="absolute -left-6 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full"
-                          style={{
-                            background: isLast ? "var(--primary)" : "var(--primary-mint)",
-                            border: isLast ? "none" : "2px solid var(--primary-border)",
-                          }}
-                        >
-                          <div
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: isLast ? "white" : "var(--primary)" }}
-                          />
+                      <div key={entry.id} className="relative pl-8">
+                        <div className={`absolute left-0 top-1 w-6 h-6 rounded-lg border-2 border-white shadow-sm flex items-center justify-center text-white z-10 ${colors.dot}`}>
+                          {getTimelineIcon(entry.actorRole, entry.action)}
                         </div>
-
-                        <div>
-                          <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        <div className={`p-4 rounded-xl border transition-all ${isLatest ? "bg-green-50 border-green-200" : "bg-slate-50 border-transparent"}`}>
+                          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-900">{entry.actorName}</span>
+                              <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border bg-white ${colors.badge}`}>
+                                {entry.actorRole}
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-slate-400 font-medium">{formatDate(entry.createdAt)}</span>
+                          </div>
+                          <p className={`text-xs leading-relaxed ${isLatest ? "text-slate-900 font-medium" : "text-slate-500"}`}>
                             {entry.note || entry.action.replace(/_/g, " ")}
-                          </p>
-                          <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                            {formatDate(entry.createdAt)} ·{" "}
-                            <span
-                              style={{
-                                color:
-                                  entry.actorRole === "AUTHORITY"
-                                    ? "#2563eb"
-                                    : entry.actorRole === "SYSTEM"
-                                    ? "#6b7280"
-                                    : "var(--primary)",
-                              }}
-                            >
-                              {entry.actorName} ({entry.actorRole})
-                            </span>
                           </p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Comments */}
-        <div className="mt-6 rounded-2xl border p-6" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
-            <h2 className="text-lg font-bold" style={{ color: "var(--text-heading)" }}>
-              Comments ({comments.length})
-            </h2>
+              )}
+            </div>
           </div>
 
-          <div className="mt-4 grid gap-3">
-            {comments.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-xl border px-4 py-3"
-                style={{
-                  borderColor: c.isOfficial ? "#93c5fd" : "var(--border)",
-                  background: c.isOfficial ? "#f0f7ff" : "var(--surface)",
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                    {c.user.name}
-                  </span>
-                  {c.isOfficial && (
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                      style={{ background: "#dbeafe", color: "#2563eb" }}
-                    >
-                      Official Response
-                    </span>
-                  )}
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {formatDate(c.createdAt)}
-                  </span>
+          {/* ═══ RIGHT COL (1/3): Map + Authority + Actions + Comments ═══ */}
+          <div className="space-y-5">
+
+            {/* Location Map Placeholder */}
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="h-44 bg-slate-100 relative">
+                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(#16a34a 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="absolute -inset-4 bg-green-600/20 rounded-full animate-ping" />
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center relative z-10 border-2 border-green-200">
+                      <MapPin className="text-green-600" size={20} />
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-1.5 text-sm" style={{ color: "var(--text-body)" }}>
-                  {c.content}
-                </p>
+                <div className="absolute bottom-3 right-3">
+                  <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
+                    <ExternalLink size={15} />
+                  </button>
+                </div>
               </div>
-            ))}
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">
+                    <MapPin size={15} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Area</p>
+                    <p className="text-xs font-bold text-slate-900">{report.areaName}</p>
+                  </div>
+                </div>
+                {report.constituencyName && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">
+                      <Users size={15} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Constituency</p>
+                      <p className="text-xs font-bold text-slate-900">{report.constituencyName}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {comments.length === 0 && (
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                No comments yet. Be the first to comment.
-              </p>
+            {/* Assigned Authority */}
+            {report.mlaName && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">
+                  Assigned Authority
+                </h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 bg-green-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                    {report.mlaName.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 leading-tight line-clamp-1">{report.mlaName}</h4>
+                    <p className="text-[10px] text-slate-500 font-medium">{report.constituencyName ?? "MLA"}</p>
+                  </div>
+                </div>
+              </div>
             )}
-          </div>
 
-          {/* Add comment form */}
-          {user && (
-            <form onSubmit={handleAddComment} className="mt-4 flex gap-2">
-              <input
-                className="h-11 flex-1 rounded-xl border px-3 text-sm outline-none"
-                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-                placeholder="Write a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={commentLoading || !commentText.trim()}
-                className="flex h-11 items-center justify-center rounded-xl px-4 text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: "var(--primary)" }}
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
-          )}
+            {/* Authority Action Panel */}
+            {isAuthority && availableTransitions.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield size={16} className="text-blue-600" />
+                  <h3 className="text-sm font-bold text-blue-900">Authority Actions</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="relative">
+                    <select
+                      className="w-full h-10 appearance-none rounded-xl border border-blue-200 bg-white px-3 pr-10 text-sm outline-none"
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                    >
+                      <option value="">— Select action —</option>
+                      {availableTransitions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  </div>
+
+                  {selectedStatus === "RESOLVED_PENDING_VERIFICATION" && (
+                    <label className="block rounded-xl border-2 border-dashed border-blue-200 p-3 bg-blue-50/50">
+                      <span className="flex items-center gap-1 font-bold text-blue-700 text-xs mb-1">
+                        <Upload size={13} /> Fix Photo (required)
+                      </span>
+                      <input
+                        type="file" accept="image/*"
+                        onChange={(e) => setFixPhotoFile(e.target.files?.[0] ?? null)}
+                        className="w-full rounded-lg border border-blue-200 bg-white px-2 py-1.5 text-sm"
+                      />
+                      {fixPhotoPreview && (
+                        <div className="mt-2 overflow-hidden rounded-lg">
+                          <img src={fixPhotoPreview} alt="Fix preview" className="h-32 w-full object-cover" />
+                        </div>
+                      )}
+                    </label>
+                  )}
+
+                  {selectedStatus === "REJECTED" && (
+                    <textarea
+                      className="w-full min-h-[70px] rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm outline-none"
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="Reason for rejection (will be public)..."
+                    />
+                  )}
+
+                  <input
+                    className="w-full h-9 rounded-xl border border-blue-200 bg-white px-3 text-sm outline-none"
+                    value={actionNote}
+                    onChange={(e) => setActionNote(e.target.value)}
+                    placeholder="Optional note..."
+                  />
+
+                  {actionError && <p className="text-xs text-red-600 font-medium">{actionError}</p>}
+
+                  <button
+                    onClick={handleStatusUpdate}
+                    disabled={!selectedStatus || actionLoading}
+                    className="w-full h-10 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-50"
+                  >
+                    {actionLoading ? "Updating..." : "Submit Update"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-lg">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Actions</h3>
+              <div className="space-y-2">
+                <button className="w-full py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                  <Share2 size={15} /> Share Report
+                </button>
+                <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2">
+                  <Flag size={15} /> Report Error
+                </button>
+                <button className="w-full py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 border border-red-500/20">
+                  <AlertTriangle size={15} /> Escalate Issue
+                </button>
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <MessageSquare size={13} /> Comments
+                </h3>
+                <span className="text-[10px] font-bold text-slate-400">{comments.length}</span>
+              </div>
+
+              {comments.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {comments.map((c) => (
+                    <div
+                      key={c.id}
+                      className={`rounded-xl border px-3 py-2.5 ${c.isOfficial ? "border-blue-200 bg-blue-50" : "border-slate-100 bg-slate-50"}`}
+                    >
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-xs font-bold text-slate-900">{c.user.name}</span>
+                        {c.isOfficial && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded border border-blue-200">
+                            Official
+                          </span>
+                        )}
+                        <span className="text-[9px] text-slate-400">{formatDate(c.createdAt)}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">{c.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {comments.length === 0 && (
+                <p className="text-xs text-slate-400 mb-4">No comments yet. Be the first.</p>
+              )}
+
+              {user && (
+                <form onSubmit={handleAddComment} className="flex gap-2">
+                  <input
+                    className="flex-1 h-9 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-medium outline-none focus:border-green-400 transition-colors"
+                    placeholder="Add a comment..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    disabled={commentLoading || !commentText.trim()}
+                    className="w-9 h-9 bg-green-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50"
+                  >
+                    <Send size={14} />
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
