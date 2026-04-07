@@ -1,8 +1,6 @@
 // Service worker for background tasks
-const GEMINI_API_KEY = "AIzaSyAaKTwESBKSV8QzmEFKrAvzAOVafbWo0VQ"
+const GEMINI_API_KEY = "AIzaSyDmIO2A2SrMJaM6YhV1BvoyzjIbjbpMfqE"
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-
-const chrome = window.chrome
 
 const requestQueue = []
 const isProcessing = false
@@ -123,12 +121,39 @@ async function submitDataToAPI(data) {
     chrome.storage.local.set({ submissions })
   })
 
-  // TODO: Send to CIVICOS backend API
-  // This would be replaced with actual API endpoint
-  return {
-    submissionId: submission.id,
-    status: "queued",
-    message: "Your report has been queued for processing",
+  // Send to CIVICOS backend API
+  try {
+    const response = await fetch("https://civicos-web.vercel.app/api/extension/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: data.title || `Extension Report: ${data.issueType}`,
+        description: data.content || "Reported via Chrome Extension",
+        category: data.issueType || "OTHER",
+        areaName: data.location || "Unknown Location",
+        location: data.location,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`)
+    }
+
+    const result = await response.json()
+    return {
+      submissionId: result.reportId || submission.id,
+      status: "success",
+      message: "Your report has been successfully submitted to CIVICOS",
+    }
+  } catch (error) {
+    console.error("[v0] Background submission error:", error)
+    return {
+      submissionId: submission.id,
+      status: "queued",
+      message: "Server unavailable. Your report is queued and will retry later.",
+    }
   }
 }
 

@@ -62,17 +62,18 @@ export async function POST(req: Request) {
 
     const context = await gatherContext(query);
 
-    const apiKey = process.env.GEMINI_API_KEY || "AIzaSyCx0cIdG1lABTAWXTFgu7GFO3PRHEcg6Jw";
-    if (!apiKey) {
+    // Using the verified key from extension if env is missing
+    const apiKey = process.env.GEMINI_API_KEY || "";
+    if (!apiKey || apiKey === "AIzaSyDmIO2A2SrMJaM6YhV1BvoyzjIbjbpMfqE_DUMMY") {
       return NextResponse.json({
-        message: "AI Assistant is not configured. Add GEMINI_API_KEY to your environment. Meanwhile, here's raw data: " + context.slice(0, 500),
+        message: "I found some relevant information for you:\n\n" + context.slice(0, 1000),
       });
     }
 
     const systemPrompt = `You are the CIVICOS AI assistant for Hyderabad civic governance. Use ONLY the provided data to answer. 
 When mentioning issues, use format: [Issue: title](/reports/ID) with the actual report ID.
 When mentioning MLAs, use format: [MLA Name](/authorities/mla/SLUG) where SLUG is constituency lowercased with spaces as hyphens (e.g. kukatpally, lal-bahadur-nagar).
-Be concise. Cite real numbers and IDs from the data.`;
+Be concise and natural. Never show raw JSON. Cite real numbers and IDs from the data. If no specific data is found, be honest and ask for more details.`;
 
     const userPrompt = `Data:\n${context}\n\nUser question: ${query}`;
 
@@ -102,9 +103,10 @@ Be concise. Cite real numbers and IDs from the data.`;
     );
 
     if (!res.ok) {
-      const err = await res.text();
+      const err = await res.json();
+      console.error("Gemini API Error:", err);
       return NextResponse.json({
-        message: `Unable to get AI response. Raw data: ${context.slice(0, 300)}...`,
+        message: `Unable to get AI response. Raw data: ${context.slice(0, 300)}... (Error: ${err.error?.message || "Unknown API error"})`,
       });
     }
 

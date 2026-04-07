@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   { label: "Leaderboard",     href: "/leaderboard", icon: Trophy },
   { label: "Authorities",     href: "/authorities", icon: Users },
   { label: "Ward Comparison", href: "/compare",     icon: GitCompare },
-  { label: "AI Assistant",    href: "/assistant",   icon: MessageSquare },
+  { label: "AI Assistant",    href: "/assistant",   icon: MessageSquare, isAssistant: true },
   { label: "Smart Route",     href: "/smart-route", icon: Route },
 ];
 
@@ -35,7 +35,7 @@ export function PageShell({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function AppSidebar() {
+export default function AppSidebar({ onAssistantClick }: { onAssistantClick?: () => void }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
 
@@ -73,9 +73,31 @@ export default function AppSidebar() {
         {/* Main Menu */}
         <div className="flex-1 px-6 space-y-0.5 relative z-10 overflow-y-auto">
           <p className={`text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-3 ${!isOpen && "lg:hidden"}`}>Main Menu</p>
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item: any) => {
             const active = isActive(item.href);
             const Icon = item.icon;
+            
+            if (item.isAssistant) {
+              return (
+                <button
+                  key={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onAssistantClick?.();
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-4 py-3 rounded-xl transition-all font-bold text-xs no-underline border-none text-left bg-transparent ${
+                    active 
+                      ? "bg-green-600 text-white shadow-lg shadow-green-600/20" 
+                      : "text-gray-500 hover:bg-green-50 hover:text-green-600"
+                  } ${!isOpen && "lg:justify-center lg:px-0"}`}
+                  title={!isOpen ? item.label : ""}
+                >
+                  <Icon size={18} />
+                  <span className={`${!isOpen && "lg:hidden"}`}>{item.label}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
