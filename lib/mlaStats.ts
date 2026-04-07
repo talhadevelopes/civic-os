@@ -75,10 +75,10 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
   const [reports, mlas] = await Promise.all([
     prisma.report.findMany({
       where: {
-        mlaName: { not: null },
-        constituencyName: { not: null },
+        assignedMlaId: { not: null },
       },
       select: {
+        assignedMlaId: true,
         mlaName: true,
         constituencyName: true,
         status: true,
@@ -88,6 +88,7 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
     }),
     prisma.mla.findMany({
       select: {
+        id: true,
         name: true,
         constituency: true,
         photoUrl: true,
@@ -95,26 +96,29 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
     }),
   ]);
 
-  const mlaPhotoMap = new Map<string, string | null>();
+  const mlaMap = new Map<string, { name: string; constituency: string; photoUrl: string | null }>();
   for (const m of mlas) {
-    if (m.name && m.constituency) {
-      mlaPhotoMap.set(`${m.name}|${m.constituency}`, m.photoUrl);
-    }
+    mlaMap.set(m.id, {
+      name: m.name,
+      constituency: m.constituency ?? "Unknown",
+      photoUrl: m.photoUrl,
+    });
   }
 
-  const byKey = new Map<string, MlaStatsRow>();
+  const byMlaId = new Map<string, MlaStatsRow>();
 
   for (const r of reports) {
-    const mlaName = r.mlaName ?? "Unknown";
-    const constituency = r.constituencyName ?? "Unknown";
-    const key = `${mlaName}|${constituency}`;
+    const mlaId = r.assignedMlaId!;
+    const mlaInfo = mlaMap.get(mlaId);
+    
+    if (!mlaInfo) continue;
 
-    if (!byKey.has(key)) {
-      byKey.set(key, {
-        mlaName,
-        constituency,
-        photoUrl: mlaPhotoMap.get(key) ?? null,
-        slug: constituencyToSlug(constituency),
+    if (!byMlaId.has(mlaId)) {
+      byMlaId.set(mlaId, {
+        mlaName: mlaInfo.name,
+        constituency: mlaInfo.constituency,
+        photoUrl: mlaInfo.photoUrl,
+        slug: constituencyToSlug(mlaInfo.constituency),
         totalIssues: 0,
         confirmedFixed: 0,
         pending: 0,
@@ -126,7 +130,7 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
       });
     }
 
-    const row = byKey.get(key)!;
+    const row = byMlaId.get(mlaId)!;
     row.totalIssues += 1;
 
     if (r.status === "CONFIRMED_FIXED") {
@@ -143,7 +147,7 @@ export async function getMlaStatsFromReports(): Promise<MlaStatsRow[]> {
     if (r.status === "REJECTED") row.rejected += 1;
   }
 
-  const result = Array.from(byKey.values());
+  const result = Array.from(byMlaId.values());
   for (const row of result) {
     row.resolutionRate = row.totalIssues > 0 ? (row.confirmedFixed / row.totalIssues) * 100 : 0;
   }

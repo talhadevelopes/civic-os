@@ -5,6 +5,8 @@ import IssueDetailClient from "@/app/_components/common/IssueDetailClient";
 import { PageShell } from "@/app/_components/global/AppSidebar";
 import { ChevronLeft, FileText } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -55,9 +57,9 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
     createdAt: report.createdAt.toISOString(),
     updatedAt: report.updatedAt.toISOString(),
     escalatedAt: report.escalatedAt?.toISOString() ?? null,
-    images: report.images.map((img : any) => ({ ...img, createdAt: img.createdAt.toISOString() })),
-    timeline: report.timeline.map((t : any) => ({ ...t, createdAt: t.createdAt.toISOString() })),
-    comments: report.comments.map((c : any) => ({ ...c, createdAt: c.createdAt.toISOString() })),
+    images: report.images.map((img: any) => ({ ...img, createdAt: img.createdAt.toISOString() })),
+    timeline: report.timeline.map((t: any) => ({ ...t, createdAt: t.createdAt.toISOString() })),
+    comments: report.comments.map((c: any) => ({ ...c, createdAt: c.createdAt.toISOString() })),
   };
 
   return (

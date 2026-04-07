@@ -58,27 +58,7 @@ export default async function ComparePage({
 
   return (
     <PageShell>
-      {/* Header */}
-      <header className="h-16 px-8 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-30 border-b border-gray-100/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-lg">
-            <GitCompare size={20} />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 tracking-tight">Ward Comparison</h2>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Side-by-side ward performance</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="p-2.5 text-gray-400 hover:text-green-600 bg-green-50 rounded-xl transition-all relative">
-            <Bell size={18} />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white" />
-          </button>
-          <Link href="/report-issue" className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all text-xs no-underline">
-            <Plus size={16} /> New Report
-          </Link>
-        </div>
-      </header>
+      
 
       <div className="p-8">
         <div className="mb-8">

@@ -30,6 +30,7 @@ import {
   ExternalLink,
   Plus,
 } from "lucide-react";
+import SingleMapClient from "@/app/_components/maps/SingleMapClient";
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -504,6 +505,14 @@ export default function IssueDetailClient({
                           <p className={`text-xs leading-relaxed ${isLatest ? "text-slate-900 font-medium" : "text-slate-500"}`}>
                             {entry.note || entry.action.replace(/_/g, " ")}
                           </p>
+                          {(entry.action === "CITIZEN_VERIFIED" || entry.action === "FIX_PHOTO_UPLOADED") && report.fixPhotoUrl && (
+                            <div className="mt-3 rounded-lg overflow-hidden border border-green-100 shadow-sm max-w-sm">
+                              <img src={report.fixPhotoUrl} alt="Fix confirmation" className="w-full h-32 object-cover" />
+                              <div className="px-3 py-1.5 bg-green-50 text-[10px] font-bold text-green-600 flex items-center gap-1.5">
+                                <Camera size={10} /> Verified Resolution Photo
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -516,20 +525,18 @@ export default function IssueDetailClient({
           {/* ═══ RIGHT COL (1/3): Map + Authority + Actions + Comments ═══ */}
           <div className="space-y-5">
 
-            {/* Location Map Placeholder */}
+            {/* Location Map */}
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
               <div className="h-44 bg-slate-100 relative">
-                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(#16a34a 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    <div className="absolute -inset-4 bg-green-600/20 rounded-full animate-ping" />
-                    <div className="w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center relative z-10 border-2 border-green-200">
-                      <MapPin className="text-green-600" size={20} />
-                    </div>
+                {(report.latitude && report.longitude) ? (
+                  <SingleMapClient lat={report.latitude} lng={report.longitude} category={report.category} />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-400">
+                    No coordinates available
                   </div>
-                </div>
-                <div className="absolute bottom-3 right-3">
-                  <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
+                )}
+                <div className="absolute bottom-3 right-3 pointer-events-none z-10">
+                  <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors pointer-events-auto">
                     <ExternalLink size={15} />
                   </button>
                 </div>

@@ -92,11 +92,28 @@ export default async function FeedPage({
           where: { userId, issueId: { in: reports.map((r : any) => r.id) } },
           select: { issueId: true },
         })
-      ).map((u : any) => u.issueId)
+      ).map((u: any) => u.issueId)
     : [];
 
+  // Fetch ALL reports with coordinates for the map so they aren't limited to 12
+  const allMapReports = await prisma.report.findMany({
+    where: {
+      latitude: { not: null },
+      longitude: { not: null },
+      ...where // apply the same categorical filters if needed
+    },
+    select: {
+      id: true,
+      title: true,
+      areaName: true,
+      category: true,
+      latitude: true,
+      longitude: true,
+    }
+  });
+
   // Reports with coords for map
-  const reportsWithCoords = reports
+  const reportsWithCoords = allMapReports
     .filter((r : any) => r.latitude !== null && r.longitude !== null)
     .map((r : any) => ({
       id: r.id,

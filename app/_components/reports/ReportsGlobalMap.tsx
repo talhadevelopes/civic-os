@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
@@ -17,21 +17,32 @@ export type GlobalMapReport = {
 };
 
 function categoryColor(category: string) {
-  const colors: Record<string, string> = {
-    STREET_LIGHT: "#f59e0b",
-    POTHOLE: "#ef4444",
-    GARBAGE: "#10b981",
-    WATER_SUPPLY: "#3b82f6",
-    DRAINAGE: "#8b5cf6",
-    OTHER: "#6b7280",
-  };
-  return colors[category] || colors.OTHER;
+  const cat = category.toUpperCase();
+  if (cat.includes("ROAD") || cat.includes("POTHOLE")) return "#ef4444";
+  if (cat.includes("GARBAGE") || cat.includes("DUMPING")) return "#ea580c";
+  if (cat.includes("WATER") || cat.includes("FLOOD")) return "#3b82f6";
+  if (cat.includes("LIGHT") || cat.includes("TRAFFIC")) return "#eab308";
+  if (cat.includes("ANIMAL") || cat.includes("DOG")) return "#8b5cf6";
+  return "#10b981"; // default green
+}
+
+function getCategoryLabel(category: string) {
+  const cat = category.toUpperCase();
+  if (cat.includes("ROAD") || cat.includes("POTHOLE")) return "Roads";
+  if (cat.includes("GARBAGE") || cat.includes("DUMPING")) return "Garbage";
+  if (cat.includes("WATER") || cat.includes("FLOOD")) return "Water";
+  if (cat.includes("LIGHT") || cat.includes("TRAFFIC")) return "Traffic/Light";
+  if (cat.includes("DRAIN")) return "Drainage";
+  if (cat.includes("ANIMAL")) return "Stray Animals";
+  if (cat.includes("ENCROACH")) return "Encroachment";
+  return "City Issue";
 }
 
 function createCategoryIcon(category: string, isSelected: boolean) {
-  const bg = isSelected ? "#16a34a" : categoryColor(category);
+  const bg = isSelected ? "#111827" : categoryColor(category); // dark grey when selected
   const scale = isSelected ? 1.4 : 1;
   const size = 16;
+  const label = getCategoryLabel(category);
 
   return L.divIcon({
     className: "custom-report-icon",
@@ -46,18 +57,46 @@ function createCategoryIcon(category: string, isSelected: boolean) {
         transform: scale(${scale});
         transform-origin: center;
         cursor: pointer;
+        position: relative;
+        z-index: ${isSelected ? 50 : 10};
       "></div>
     `,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
+    popupAnchor: [0, -size / 2 - 10],
   });
+}
+
+function MapInvalidate({ isFullScreen }: { isFullScreen: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    // Wait for css transitions
+    setTimeout(() => map.invalidateSize(), 150);
+    setTimeout(() => map.invalidateSize(), 350);
+  }, [isFullScreen, map]);
+  return null;
 }
 
 export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullScreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullScreen = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!document.fullscreenElement && containerRef.current) {
+      containerRef.current.requestFullscreen().catch((err) => console.error(err));
+    } else if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => console.error(err));
+    }
+  };
 
   const selected = useMemo(() => reports.find((r) => r.id === selectedId) ?? null, [reports, selectedId]);
 
@@ -78,32 +117,37 @@ export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport
   return (
     <div 
       ref={containerRef} 
-      className={`relative overflow-hidden transition-all duration-300 bg-white ${
-        isFullScreen ? "fixed inset-0 z-[10000]" : "relative h-full"
+      className={`relative w-full overflow-hidden transition-all duration-300 bg-white ${
+        isFullScreen ? "h-screen" : "h-full min-h-[400px]"
       }`} 
     >
       {/* Full Screen Toggle Button */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[10001]">
+      <div className="absolute top-6 right-6 z-[10001]">
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsFullScreen(!isFullScreen);
-          }}
-          className="flex items-center gap-2 px-6 py-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 text-gray-900 font-bold text-sm hover:scale-105 transition-all active:scale-95"
+          onClick={toggleFullScreen}
+          className="flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 text-gray-900 font-bold text-[10px] hover:scale-105 transition-all active:scale-95 uppercase tracking-widest"
         >
           {isFullScreen ? (
             <>
-              <X size={18} />
-              Exit Full Screen
+              <X size={14} /> EXIT FULL SCREEN
             </>
           ) : (
             <>
-              <Maximize2 size={18} />
-              View Full Map
+              <Maximize2 size={14} /> Full Screen
             </>
           )}
         </button>
+      </div>
+
+      {/* Map Legend */}
+      <div className="absolute bottom-6 left-[80px] z-[1000] bg-white/95 backdrop-blur-xl shadow-xl rounded-xl p-3 border border-gray-100 flex flex-col gap-1.5 pointer-events-auto">
+        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Issue Types</h4>
+        {["ROAD", "GARBAGE", "WATER", "LIGHT", "ANIMAL", "OTHER"].map((cat) => (
+          <div key={cat} className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full shadow-sm border border-white" style={{ backgroundColor: categoryColor(cat) }} />
+            <span className="text-[10px] font-bold text-gray-700">{getCategoryLabel(cat)}</span>
+          </div>
+        ))}
       </div>
 
       <MapContainer 
@@ -114,6 +158,7 @@ export default function ReportsGlobalMap({ reports }: { reports: GlobalMapReport
         zoomControl={false}
         attributionControl={false}
       >
+        <MapInvalidate isFullScreen={isFullScreen} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
