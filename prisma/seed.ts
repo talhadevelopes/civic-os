@@ -164,7 +164,7 @@ async function main() {
   await prisma.user.deleteMany();
   console.log("✓ Cleared all existing data");
 
-  const hashedPw = await bcrypt.hash("password123", 10);
+  const hashedPw = await bcrypt.hash("CivicOS_Demo_2026!", 10);
 
   // ── 1. Users ──────────────────────────────────────────────────
   const authority = await prisma.user.create({

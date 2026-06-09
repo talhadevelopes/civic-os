@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [selectedMlaName, setSelectedMlaName] = useState("");
   const [mlaSearch, setMlaSearch] = useState("");
 
-  const demoCitizen = { email: "ahmed.khan@gmail.com", password: "password123" };
+  const demoCitizen = { email: "ahmed.khan@gmail.com", password: "CivicOS_Demo_2026!" };
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -39,7 +39,7 @@ export default function LoginPage() {
     const res = await signIn("credentials", {
       redirect: false,
       email: mlaEmail,
-      password: "password123", // Default demo password
+      password: "CivicOS_Demo_2026!", // Updated secure password
       callbackUrl,
     });
 

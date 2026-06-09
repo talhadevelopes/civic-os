@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
               data: {
                 name: formattedName,
                 email: email,
-                passwordHash: await bcrypt.hash("password123", 10),
+                passwordHash: await bcrypt.hash("CivicOS_Demo_2026!", 10),
                 role: "AUTHORITY",
                 authorityBody: "MLA",
               },
