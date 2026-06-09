@@ -20,6 +20,40 @@ export const authOptions: NextAuthOptions = {
 
         if (!email || !password) return null;
 
+        // Handle Demo MLA Login
+        if (email.startsWith("mla.") && email.endsWith("@civicos.demo")) {
+          // Extract name: mla.first.last@civicos.demo -> "First Last"
+          const namePart = email.split("@")[0].replace("mla.", "");
+          const formattedName = namePart
+            .split(".")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+
+          // Dynamically create or find this MLA in the User table
+          // This ensures foreign key constraints work for reports/comments/timeline
+          let mlaUser = await prisma.user.findUnique({ where: { email } });
+
+          if (!mlaUser) {
+            mlaUser = await prisma.user.create({
+              data: {
+                name: formattedName,
+                email: email,
+                passwordHash: await bcrypt.hash("password123", 10),
+                role: "AUTHORITY",
+                authorityBody: "MLA",
+              },
+            });
+          }
+
+          return {
+            id: mlaUser.id,
+            name: mlaUser.name,
+            email: mlaUser.email,
+            role: mlaUser.role,
+            authorityBody: mlaUser.authorityBody,
+          } as any;
+        }
+
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 

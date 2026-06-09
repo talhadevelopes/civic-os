@@ -25,6 +25,13 @@ export async function PATCH(
 
   const user = session.user as any;
 
+  // Check if the user ID actually exists in the database to avoid foreign key errors
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true },
+  });
+  const validActorId = dbUser ? user.id : null;
+
   // Only authorities can change status
   if (user.role !== "AUTHORITY") {
     return NextResponse.json(
@@ -85,7 +92,7 @@ export async function PATCH(
 
   // If assigning, set the authority
   if (newStatus === "ASSIGNED" || issue.status === "REPORTED") {
-    updateData.assignedAuthorityId = user.id;
+    updateData.assignedAuthorityId = validActorId;
   }
 
   // Update issue and create timeline entry in a transaction
@@ -97,7 +104,7 @@ export async function PATCH(
     prisma.issueTimeline.create({
       data: {
         issueId: id,
-        actorId: user.id,
+        actorId: validActorId,
         actorName: user.name || "Authority",
         actorRole: "AUTHORITY",
         action: newStatus === "REJECTED" ? "REJECTED" : "STATUS_CHANGED",

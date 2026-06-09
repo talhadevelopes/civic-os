@@ -38,7 +38,32 @@ export default async function DashboardPage({
   const params = await searchParams;
   const query = (params.q ?? "").trim().toLowerCase();
   const session = await requireServerSession();
-  const user = session?.user as { id: string; role: string } | undefined;
+  const user = session?.user as { id: string; name: string; role: string } | undefined;
+
+  let authorityReports: any[] = [];
+  if (user?.role === "AUTHORITY" && user?.id) {
+    // If it's an MLA login, filter by mlaName string
+    if ((user as any).authorityBody === "MLA") {
+      authorityReports = await prisma.report.findMany({
+        where: { mlaName: user.name },
+        orderBy: { createdAt: "asc" },
+        take: 20,
+        include: {
+          images: { where: { isMain: true }, take: 1 },
+        },
+      });
+    } else {
+      // Standard authority login (GHMC)
+      authorityReports = await prisma.report.findMany({
+        where: { assignedAuthorityId: user.id },
+        orderBy: { createdAt: "asc" },
+        take: 20,
+        include: {
+          images: { where: { isMain: true }, take: 1 },
+        },
+      });
+    }
+  }
 
   const [
     totalReports,
@@ -155,18 +180,6 @@ export default async function DashboardPage({
     );
   } catch {
     wardCounts = {};
-  }
-
-  let authorityReports: typeof recentReports = [];
-  if (user?.role === "AUTHORITY" && user?.id) {
-    authorityReports = await prisma.report.findMany({
-      where: { assignedAuthorityId: user.id },
-      orderBy: { createdAt: "asc" },
-      take: 20,
-      include: {
-        images: { where: { isMain: true }, take: 1 },
-      },
-    });
   }
 
   // Stats cards data — real data from DB

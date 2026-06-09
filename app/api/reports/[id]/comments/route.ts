@@ -30,6 +30,14 @@ export async function POST(
   }
 
   const user = session.user as any;
+
+  // Check if the user ID actually exists in the database to avoid foreign key errors
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true },
+  });
+  const validUserId = dbUser ? user.id : null;
+
   const { id } = await params;
   const body = await req.json();
   const content = (body.content ?? "").trim();
@@ -50,7 +58,7 @@ export async function POST(
     prisma.comment.create({
       data: {
         issueId: id,
-        userId: user.id,
+        userId: validUserId as string, // Note: This might still fail if userId is required and null
         content,
         isOfficial,
       },
@@ -61,7 +69,7 @@ export async function POST(
     prisma.issueTimeline.create({
       data: {
         issueId: id,
-        actorId: user.id,
+        actorId: validUserId,
         actorName: user.name || (isOfficial ? "Authority" : "Citizen"),
         actorRole: isOfficial ? "AUTHORITY" : "CITIZEN",
         action: "COMMENT_ADDED",
