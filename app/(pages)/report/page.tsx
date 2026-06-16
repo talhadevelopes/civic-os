@@ -1,7 +1,6 @@
-import React from "react";
+import { redirect } from "next/navigation";
 
-const ReportPage = () => {
-  return <div>Report</div>;
-};
+export default function ReportPage() {
+  redirect("/feed");
+}
 
-export default ReportPage;

@@ -26,24 +26,24 @@ function readJson(filename: string) {
 // ── Category Image Banks ──────────────────────────────────────────
 const CATEGORY_IMAGES: Record<string, string[]> = {
   POTHOLES: [
-    "https://upload.wikimedia.org/wikipedia/commons/0/03/Waterlogged_roads_%26_potholes_in_Kolkata_(India)_(1).jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/f/fe/Monsoon_floods_in_Ambala,_2010.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flood_waters_reaching_the_road_in_Fatehabad_District;_2023.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/0/03/Waterlogged_roads_%26_potholes_in_Kolkata_%28India%29_%281%29.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/f/fe/Monsoon_floods_in_Ambala%2C_2010.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flood_waters_reaching_the_road_in_Fatehabad_District%3B_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/b/b2/Garbej_dump_on_the_Delhi_-_Karnal_Road_01.jpg",
   ],
   GARBAGE: [
     "https://upload.wikimedia.org/wikipedia/commons/1/15/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017.JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/f/fc/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017_(cropped).JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/d/df/Garbage_dumping_site_in_santiketan,_khoai,_Birbhum,_West_Bengal.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/8/84/Garbage_heap_in_Batla_House,_New_Delhi,_18_June_2024.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/f/fc/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017_%28cropped%29.JPG",
+    "https://upload.wikimedia.org/wikipedia/commons/d/df/Garbage_dumping_site_in_santiketan%2C_khoai%2C_Birbhum%2C_West_Bengal.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/84/Garbage_heap_in_Batla_House%2C_New_Delhi%2C_18_June_2024.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/f/f6/Burning_Garbage_-_East_Kolkata_Wetlands_-_Nalban_-_Kolkata_2017-06-09_2031.JPG",
   ],
   ILLEGAL_DUMPING: [
     "https://upload.wikimedia.org/wikipedia/commons/1/15/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017.JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/f/fc/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017_(cropped).JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/d/df/Garbage_dumping_site_in_santiketan,_khoai,_Birbhum,_West_Bengal.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/8/84/Garbage_heap_in_Batla_House,_New_Delhi,_18_June_2024.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/f/fc/City_Garbage_Dump_-_Dhapa_-_Kolkata_2010-08-06_7017_%28cropped%29.JPG",
+    "https://upload.wikimedia.org/wikipedia/commons/d/df/Garbage_dumping_site_in_santiketan%2C_khoai%2C_Birbhum%2C_West_Bengal.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/84/Garbage_heap_in_Batla_House%2C_New_Delhi%2C_18_June_2024.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/f/f6/Burning_Garbage_-_East_Kolkata_Wetlands_-_Nalban_-_Kolkata_2017-06-09_2031.JPG",
   ],
   TRAFFIC_SIGNAL: [
@@ -63,8 +63,8 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   STRAY_ANIMALS: [
     "https://upload.wikimedia.org/wikipedia/commons/0/01/Stray_Dog_%26_Pedestrians_-_Kolkata_05903.JPG",
     "https://upload.wikimedia.org/wikipedia/commons/b/b3/Cow_in_Street_-_Madurai_-_India.JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/c/c2/Street_Cow,_Delhi_-_panoramio.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/e/e1/India_-_Delhi_-_009_-_cows_hanging_out_on_the_road_(2129391055).jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/c/c2/Street_Cow%2C_Delhi_-_panoramio.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/e/e1/India_-_Delhi_-_009_-_cows_hanging_out_on_the_road_%282129391055%29.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/b/bb/Khajuraho_-_a_cow_on_a_street.jpg",
   ],
   BUILDING: [
@@ -82,39 +82,39 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
     "https://upload.wikimedia.org/wikipedia/commons/6/6e/Illegal_building_India.jpg",
   ],
   ROAD_DAMAGE: [
-    "https://upload.wikimedia.org/wikipedia/commons/0/03/Waterlogged_roads_%26_potholes_in_Kolkata_(India)_(1).jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/f/fe/Monsoon_floods_in_Ambala,_2010.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flood_waters_reaching_the_road_in_Fatehabad_District;_2023.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/0/03/Waterlogged_roads_%26_potholes_in_Kolkata_%28India%29_%281%29.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/f/fe/Monsoon_floods_in_Ambala%2C_2010.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flood_waters_reaching_the_road_in_Fatehabad_District%3B_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/b/b2/Garbej_dump_on_the_Delhi_-_Karnal_Road_01.jpg",
   ],
   WATER_LEAKAGE: [
-    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019,_Kerala,_india_IMG_20190809_091640.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly,_Kerala,_India_IMG_20190812_130830.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019%2C_Kerala%2C_india_IMG_20190809_091640.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly%2C_Kerala%2C_India_IMG_20190812_130830.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/3/37/Kerala_Flood_9-8-2019_at_Kidangoor_-Mookkannoor_road_near_Angamaly.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/0/0b/Kerala_flood_9-8-2019_at_Kidangoor_near_Angamaly.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
   ],
   FLOODING: [
-    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019,_Kerala,_india_IMG_20190809_091640.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly,_Kerala,_India_IMG_20190812_130830.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019%2C_Kerala%2C_india_IMG_20190809_091640.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly%2C_Kerala%2C_India_IMG_20190812_130830.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/3/37/Kerala_Flood_9-8-2019_at_Kidangoor_-Mookkannoor_road_near_Angamaly.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/0/0b/Kerala_flood_9-8-2019_at_Kidangoor_near_Angamaly.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
   ],
   DRAINAGE_SEWAGE: [
-    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019,_Kerala,_india_IMG_20190809_091640.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly,_Kerala,_India_IMG_20190812_130830.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019%2C_Kerala%2C_india_IMG_20190809_091640.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly%2C_Kerala%2C_India_IMG_20190812_130830.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/3/37/Kerala_Flood_9-8-2019_at_Kidangoor_-Mookkannoor_road_near_Angamaly.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/0/0b/Kerala_flood_9-8-2019_at_Kidangoor_near_Angamaly.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
   ],
   OTHER: [
-    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019,_Kerala,_india_IMG_20190809_091640.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly,_Kerala,_India_IMG_20190812_130830.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7d/Angamaly_flood_2019%2C_Kerala%2C_india_IMG_20190809_091640.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/65/Kerala_Flood_2019_Angamaly%2C_Kerala%2C_India_IMG_20190812_130830.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/3/37/Kerala_Flood_9-8-2019_at_Kidangoor_-Mookkannoor_road_near_Angamaly.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/0/0b/Kerala_flood_9-8-2019_at_Kidangoor_near_Angamaly.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District;_2023.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flood_waters_reaching_the_village_roads_in_Fatehabad_District%3B_2023.jpg",
   ],
 };
 
@@ -361,11 +361,115 @@ async function main() {
     reportCount++;
   }
 
-  console.log(`✓ Created ${reportCount} reports with 3-4 images each and full audit trails`);
+  // ── 4. Complete Demo Report (Full Timeline) ─────────────────────
+  console.log("\n📝 Creating complete demo report...");
+  const demoMlaId = mlaByName["Arekapudi Gandhi"] || allMlas[0]?.id;
+  const demoCreatedAt = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+
+  const demoReport = await prisma.report.create({
+    data: {
+      title: "Large pothole on Kukatpally flyover causing accidents",
+      description: "A dangerous pothole has developed on the Kukatpally flyover near exit 3. Multiple two-wheelers have skidded here. This needs urgent repair.",
+      category: "POTHOLES",
+      status: "CONFIRMED_FIXED",
+      areaName: "Kukatpally",
+      mlaName: "Arekapudi Gandhi",
+      constituencyName: "Serilingampally",
+      latitude: 17.4942,
+      longitude: 78.3981,
+      createdById: citizen.id,
+      assignedMlaId: demoMlaId,
+      assignedAuthorityId: authority.id,
+      upvoteCount: 78,
+      escalated: false,
+      citizenVerified: true,
+      citizenPhotoUrl: "/reports/before.webp",
+      fixPhotoUrl: "/reports/after_fix_1.png",
+      createdAt: demoCreatedAt,
+      updatedAt: new Date(),
+      images: {
+        create: [
+          { url: "/reports/before.webp", isMain: true },
+          { url: "/reports/before_2.png", isMain: false },
+        ],
+      },
+    },
+  });
+
+  // Full timeline for demo report
+  const t_d1 = demoCreatedAt;
+  const t_d2 = new Date(t_d1.getTime() + 1 * 24 * 60 * 60 * 1000); // 1 day later
+  const t_d3 = new Date(t_d1.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days later
+  const t_d4 = new Date(t_d1.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days later
+  const t_d5 = new Date(t_d1.getTime() + 10 * 24 * 60 * 60 * 1000); // 10 days later
+  const t_d6 = new Date(t_d1.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days later
+
+  await prisma.issueTimeline.createMany({
+    data: [
+      {
+        issueId: demoReport.id,
+        actorId: citizen.id,
+        actorName: citizen.name,
+        actorRole: "CITIZEN",
+        action: "REPORTED",
+        note: "Reported the pothole issue with photos and location details.",
+        createdAt: t_d1,
+      },
+      {
+        issueId: demoReport.id,
+        actorId: authority.id,
+        actorName: "GHMC Authority",
+        actorRole: "AUTHORITY",
+        action: "ASSIGNED",
+        note: "Issue received. Assigned to Road Maintenance Department. MLA Arekapudi Gandhi notified.",
+        createdAt: t_d2,
+      },
+      {
+        issueId: demoReport.id,
+        actorId: authority.id,
+        actorName: "GHMC Authority",
+        actorRole: "AUTHORITY",
+        action: "STATUS_CHANGED",
+        note: "Work order issued. Field team on site for repair.",
+        createdAt: t_d3,
+      },
+      {
+        issueId: demoReport.id,
+        actorId: authority.id,
+        actorName: "GHMC Authority",
+        actorRole: "AUTHORITY",
+        action: "STATUS_CHANGED",
+        note: "Repair work in progress! Check the photo below.",
+        createdAt: t_d4,
+      },
+      {
+        issueId: demoReport.id,
+        actorId: authority.id,
+        actorName: "GHMC Authority",
+        actorRole: "AUTHORITY",
+        action: "FIX_PHOTO_UPLOADED",
+        note: "Pothole repaired successfully. Fix photo uploaded. Waiting for citizen verification.",
+        createdAt: t_d5,
+      },
+      {
+        issueId: demoReport.id,
+        actorId: citizen.id,
+        actorName: citizen.name,
+        actorRole: "CITIZEN",
+        action: "CITIZEN_VERIFIED",
+        note: "Verified! The repair is excellent. Thank you GHMC!",
+        createdAt: t_d6,
+      },
+    ],
+  });
+
+  console.log("✅ Complete demo report created!");
+  console.log(`✓ Created ${reportCount + 1} reports total`);
+
   console.log("\n🎉 Seed complete!\n");
   console.log("── Login credentials ──────────────────────────────");
-  console.log("  Citizen:   ahmed.khan@gmail.com   / password123");
-  console.log("  Authority: authority@ghmc.gov.in  / password123");
+  console.log("  Citizen:   ahmed.khan@gmail.com   / CivicOS_Demo_2026!");
+  console.log("  Authority: authority@ghmc.gov.in  / CivicOS_Demo_2026!");
   console.log("───────────────────────────────────────────────────\n");
 }
 

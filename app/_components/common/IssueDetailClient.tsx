@@ -29,6 +29,7 @@ import {
   MessageCircle,
   ExternalLink,
   Plus,
+  X,
 } from "lucide-react";
 import SingleMapClient from "@/app/_components/maps/SingleMapClient";
 
@@ -37,6 +38,7 @@ import SingleMapClient from "@/app/_components/maps/SingleMapClient";
 // ─────────────────────────────────────────────────────────────
 type TimelineEntry = {
   id: string;
+  actorId: string | null;
   actorName: string;
   actorRole: string;
   action: string;
@@ -90,7 +92,7 @@ type Report = {
 const STATUS_CONFIG: Record<string, { label: string; class: string }> = {
   REPORTED: { label: "Reported", class: "status-reported" },
   ASSIGNED: { label: "Assigned", class: "status-assigned" },
-  IN_PROGRESS: { label: "In Progress", class: "status-inprogress" },
+  IN_PROGRESS: { label: "In Progress", class: "status-in_progress" },
   RESOLVED_PENDING_VERIFICATION: { label: "Resolved (Awaiting Citizen Approval)", class: "status-pending" },
   CONFIRMED_FIXED: { label: "Confirmed Fixed", class: "status-confirmed" },
   REOPENED: { label: "Reopened", class: "status-reopened" },
@@ -162,6 +164,7 @@ export default function IssueDetailClient({
   const [report, setReport] = useState<Report>(initialReport);
   const [userUpvoted, setUserUpvoted] = useState(initialUserUpvoted);
   const [upvoteCount, setUpvoteCount] = useState(initialReport.upvoteCount);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Authority action state
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -297,11 +300,32 @@ export default function IssueDetailClient({
   const daysOpen = daysSince(report.createdAt);
   const isEscalated = report.escalated || (daysOpen >= 30 && !["CONFIRMED_FIXED", "REJECTED"].includes(report.status));
 
-  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
   // Render — new 2-column layout
-  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
   return (
     <div className="bg-slate-50 min-h-screen">
+      {/* Full Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white p-2 hover:bg-white/20 rounded-full transition-all"
+            onClick={() => setSelectedImage(null)}
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Full size"
+            className="max-w-full max-h-[90vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       {/* ── Top header bar ── */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -367,21 +391,30 @@ export default function IssueDetailClient({
           {/* ═══ LEFT COL (2/3): Image + Testimony + Audit Trail ═══ */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Image Gallery */}
+            {/* Main Before Image */}
             {mainSrc && (
               <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                <div className="aspect-video relative group">
+                <div 
+                  className="aspect-video relative group cursor-pointer"
+                  onClick={() => setSelectedImage(mainSrc)}
+                >
                   <img
                     src={mainSrc}
                     alt="Before — Citizen's Report"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute bottom-4 right-4 flex gap-2">
-                    <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
-                      <Maximize2 size={16} />
+                    <button 
+                      className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage(mainSrc);
+                      }}
+                    >
+                      <Maximize2 size={18} />
                     </button>
                     <button className="p-2 bg-white/90 backdrop-blur shadow-lg rounded-lg text-slate-700 hover:text-green-600 transition-colors">
-                      <Camera size={16} />
+                      <Camera size={18} />
                     </button>
                   </div>
                 </div>
@@ -395,16 +428,26 @@ export default function IssueDetailClient({
                       <p className="text-[10px] text-slate-500">{formatDate(report.createdAt)}</p>
                     </div>
                   </div>
-                  {bodyImages.length > 0 && (
-                    <div className="flex gap-2">
-                      {bodyImages.slice(0, 3).map((img) => (
-                        <div key={img.id} className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                          <img src={img.url} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      <button className="text-[10px] font-bold text-green-600 hover:underline">View All</button>
+                </div>
+              </div>
+            )}
+
+            {/* All Photos Grid */}
+            {report.images.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Camera size={14} /> All Photos
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {report.images.map((img) => (
+                    <div
+                      key={img.id}
+                      className="aspect-square rounded-xl overflow-hidden border border-slate-200 cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => setSelectedImage(img.url)}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
@@ -414,9 +457,12 @@ export default function IssueDetailClient({
               <div className="bg-white border border-green-200 rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-5 py-3 bg-green-50 border-b border-green-100 flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-green-600" />
-                  <span className="text-xs font-bold text-green-700">After — Authority&apos;s Fix (Proof of Work)</span>
+                  <span className="text-xs font-bold text-green-700">After — Authority's Fix (Proof of Work)</span>
                 </div>
-                <div className="aspect-video">
+                <div 
+                  className="aspect-video cursor-pointer"
+                  onClick={() => setSelectedImage(report.fixPhotoUrl)}
+                >
                   <img src={report.fixPhotoUrl} alt="After fix" className="w-full h-full object-cover" />
                 </div>
               </div>
@@ -453,14 +499,14 @@ export default function IssueDetailClient({
                   <button
                     onClick={() => handleVerify(true)}
                     disabled={verifyLoading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-bold rounded-xl shadow-sm disabled:opacity-50"
+                    className="flex items-center gap-2 px-8 py-4 bg-green-600 text-white text-sm font-bold rounded-xl shadow-sm disabled:opacity-50"
                   >
                     <CheckCircle2 size={16} /> Confirmed Fixed
                   </button>
                   <button
                     onClick={() => handleVerify(false)}
                     disabled={verifyLoading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-red-50 border border-red-200 text-red-600 text-sm font-bold rounded-xl disabled:opacity-50"
+                    className="flex items-center gap-2 px-8 py-4 bg-red-50 border border-red-200 text-red-600 text-sm font-bold rounded-xl disabled:opacity-50"
                   >
                     <XCircle size={16} /> Still Broken
                   </button>
@@ -505,9 +551,20 @@ export default function IssueDetailClient({
                           <p className={`text-xs leading-relaxed ${isLatest ? "text-slate-900 font-medium" : "text-slate-500"}`}>
                             {entry.note || entry.action.replace(/_/g, " ")}
                           </p>
-                          {(entry.action === "CITIZEN_VERIFIED" || entry.action === "FIX_PHOTO_UPLOADED") && report.fixPhotoUrl && (
-                            <div className="mt-3 rounded-lg overflow-hidden border border-green-100 shadow-sm max-w-sm">
-                              <img src={report.fixPhotoUrl} alt="Fix confirmation" className="w-full h-32 object-cover" />
+                          {/* In-progress photo */}
+                          {entry.action === "STATUS_CHANGED" && entry.note?.includes("Repair work in progress") && (
+                            <div className="mt-3 rounded-lg overflow-hidden border border-blue-100 shadow-sm max-w-sm cursor-pointer" onClick={() => setSelectedImage("/reports/under_working_in_progress.png")}>
+                              <img src="/reports/under_working_in_progress.png" alt="Work in progress" className="w-full h-32 object-cover" />
+                              <div className="px-3 py-1.5 bg-blue-50 text-[10px] font-bold text-blue-600 flex items-center gap-1.5">
+                                <Camera size={10} /> Work In Progress Photo
+                              </div>
+                            </div>
+                          )}
+
+                          {/* After/fix photo */}
+                          {((entry.action === "CITIZEN_VERIFIED" && report.citizenVerified) || (entry.action === "FIX_PHOTO_UPLOADED" && report.fixPhotoUrl)) && (
+                            <div className="mt-3 rounded-lg overflow-hidden border border-green-100 shadow-sm max-w-sm cursor-pointer" onClick={() => setSelectedImage(report.fixPhotoUrl || "")}>
+                              <img src={report.fixPhotoUrl || ""} alt="Fix confirmation" className="w-full h-32 object-cover" />
                               <div className="px-3 py-1.5 bg-green-50 text-[10px] font-bold text-green-600 flex items-center gap-1.5">
                                 <Camera size={10} /> Verified Resolution Photo
                               </div>
@@ -656,7 +713,7 @@ export default function IssueDetailClient({
             <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-lg">
               <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Actions</h3>
               <div className="space-y-2">
-                <button className="w-full py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                <button className="w-full py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all">
                   <Share2 size={15} /> Share Report
                 </button>
                 <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2">

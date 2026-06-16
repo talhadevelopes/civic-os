@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:demo": "tsx prisma/seed-demo-only.ts",
+    "seed:add-demo": "tsx prisma/add-demo-report.ts",
+    "check:reports": "tsx prisma/check-reports.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
