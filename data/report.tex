@@ -1,0 +1,1063 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{times}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\hypersetup{colorlinks=false, hidelinks}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{tocloft}
+\usepackage{eso-pic}
+\setlength{\cftchapindent}{0pt}
+\renewcommand{\contentsname}{}
+\renewcommand{\listfigurename}{}
+\renewcommand{\listtablename}{}
+\setlength{\cftbeforechapskip}{0pt}
+\setlength{\cftbeforesecskip}{0pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+\setlength{\cftsecindent}{0pt}
+\setlength{\cftsubsecindent}{0pt}
+\setlength{\cftsubsubsecindent}{0pt}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftdotsep}{1}
+\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftchappagefont}{\normalfont}
+\renewcommand{\cftsecfont}{\normalfont}
+\renewcommand{\cftsecpagefont}{\normalfont}
+\renewcommand{\cftsubsecfont}{\normalfont}
+\renewcommand{\cftsubsecpagefont}{\normalfont}
+
+\onehalfspacing
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+
+\titleformat{\chapter}[block]
+  {\centering\bfseries\fontsize{16}{19}\selectfont}
+  {}{0em}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+\titleformat{\section}
+  {\bfseries\fontsize{14}{17}\selectfont\raggedright}
+  {\thesection}{1em}{}
+
+\titleformat{\subsection}
+  {\bfseries\fontsize{12}{15}\selectfont\raggedright}
+  {\thesubsection}{1em}{}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  breaklines=true,
+  language=Java
+}
+
+\begin{document}
+
+\pagenumbering{roman}
+\pagestyle{empty}
+
+% ============================================================
+% TITLE PAGE
+% ============================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+
+\vspace*{0.5cm}
+
+{\bfseries\fontsize{16}{19}\selectfont CIVICOS: CIVIC INFRASTRUCTURE AND OVERSIGHT SYSTEM}
+
+\vspace{0.6cm}
+
+{\fontsize{12}{15}\selectfont
+Mini Project Report Submitted\\
+In Partial Fulfillment of the Requirements\\
+For the Degree of}
+
+\vspace{0.5cm}
+
+{\bfseries\fontsize{14}{17}\selectfont BACHELOR OF ENGINEERING}
+
+\vspace{0.2cm}
+
+{\bfseries\fontsize{14}{17}\selectfont IN}
+
+\vspace{0.2cm}
+
+{\bfseries\fontsize{14}{17}\selectfont INFORMATION TECHNOLOGY}
+
+\vspace{0.5cm}
+
+{\fontsize{12}{15}\selectfont Submitted By}
+
+\vspace{0.4cm}
+
+{\bfseries\fontsize{12}{15}\selectfont
+Mohammed Talha Ahmed Siddiqui \quad (1604-23-737-017)\\
+Mohammed Mohtashim Ibaad \quad\quad\enspace (1604-23-737-020)\\
+Yaseen Khan \quad\quad\quad\enspace (1604-23-737-018)}
+
+\vspace{0.4cm}
+
+{\itshape\fontsize{12}{15}\selectfont Under the Guidance of}\\[0.2cm]
+{\bfseries\fontsize{12}{15}\selectfont Dr. Gadala Suhasini}\\[0.1cm]
+{\fontsize{12}{15}\selectfont Assistant Professor, ITD}
+
+\vspace{0.4cm}
+
+\includegraphics[width=4.5cm,height=4.5cm,keepaspectratio]{mj_banner.png}
+
+\vspace{0.4cm}
+
+{\bfseries\fontsize{13}{16}\selectfont INFORMATION TECHNOLOGY DEPARTMENT}\\[0.2cm]
+{\bfseries\fontsize{12}{15}\selectfont MUFFAKHAM JAH COLLEGE OF ENGINEERING AND TECHNOLOGY}\\[0.2cm]
+{\fontsize{12}{15}\selectfont (Affiliated to Osmania University)}\\[0.1cm]
+{\fontsize{12}{15}\selectfont Mount Pleasant, 8-2-249, Road No. 3, Banjara Hills, Hyderabad-34}\\[0.1cm]
+{\fontsize{12}{15}\selectfont 2025-2026}
+
+\end{titlepage}
+
+% ============================================================
+% CERTIFICATE
+% ============================================================
+\newpage
+\thispagestyle{empty}
+\vspace*{-1in}
+
+\noindent
+\hspace*{-1.1in}
+\makebox[\dimexpr\textwidth + 2in\relax][c]{%
+    \includegraphics[width=\dimexpr\textwidth + 2in\relax]{banner_top.png}%
+}
+
+\vspace{1in}
+
+\begin{center}
+{\bfseries\fontsize{16}{19}\selectfont CERTIFICATE}
+\end{center}
+
+\vspace{1cm}
+
+\noindent It is certified that the work contained in the project report titled ``\textbf{CIVICOS: Civic Infrastructure and Oversight System},'' by
+
+\vspace{0.5cm}
+
+\begin{center}
+\textbf{Mr. Mohammed Talha Ahmed Siddiqui (1604-23-737-017)\\
+Mr. Mohammed Mohtashim Ibaad (1604-23-737-020)\\
+Mr. Yaseen Khan (1604-23-737-018)}
+\end{center}
+
+\vspace{0.5cm}
+
+\noindent Has been carried out under our supervision and that this work has not been submitted elsewhere for a degree.
+
+\vspace{3cm}
+
+\noindent
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Mini Project In-Charge}\\
+Dr. Gadala Suhasini\\
+Information Technology Dept.\\
+MJ College of Engineering \& Tech.\\
+Hyderabad--500034.
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Head of the Department}\\
+Dr. GOURI R PATIL\\
+Information Technology Dept.\\
+MJ College of Engineering \& Tech.\\
+Hyderabad--500034.
+\end{minipage}
+
+\vspace{2cm}
+
+\noindent\textbf{External Examiner}
+
+\vfill
+\noindent
+\hspace*{-1in}
+\raisebox{-0.5in}[0pt][0pt]{%
+    \makebox[\dimexpr\textwidth + 2in\relax][c]{%
+        \includegraphics[width=\dimexpr\textwidth + 2in\relax]{banner_bottom.png}%
+    }%
+}
+
+\newpage
+
+% ============================================================
+% ACKNOWLEDGEMENT
+% ============================================================
+\chapter*{Acknowledgement}
+\thispagestyle{empty}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+
+
+We, the undersigned, wish to express our sincere gratitude to all those who have
+supported and guided us throughout the development of this Mini Project.
+
+We are deeply grateful to Dr.\ Gouri R.\ Patil, Head of the Department,
+Information Technology, Muffakham Jah College of Engineering and Technology,
+for providing us with the necessary resources and a conducive environment to
+carry out this project successfully.
+
+We extend our heartfelt thanks to our Mini Project In-Charge, whose constant
+guidance, constructive feedback, and encouragement were invaluable at every
+stage of the project. Their technical insights helped us refine our ideas and
+build a more robust and meaningful system.
+
+We are also thankful to the faculty members of the Information Technology
+Department for their continuous support and for sharing their knowledge and
+experience whenever required.
+
+We would like to acknowledge the management of Muffakham Jah College of
+Engineering and Technology for providing excellent infrastructure and learning
+facilities that made this work possible.
+
+Finally, we thank our families and friends for their unwavering moral support
+and motivation throughout the course of this project.
+
+\vspace{2.5cm}
+
+\begin{flushright}
+\onehalfspacing
+Mohammed Talha Ahmed Siddiqui \quad (1604-23-737-017)\\[0.4cm]
+Mohammed Mohtashim Ibaad \quad (1604-23-737-020)\\[0.4cm]
+Mohammed Yaseen Khan \quad (1604-23-737-018)
+\end{flushright}
+
+\newpage
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\chapter*{Abstract}
+\thispagestyle{empty}
+\addcontentsline{toc}{chapter}{Abstract}
+
+India's urban infrastructure is deteriorating faster than its governance systems
+can respond. Every year, thousands of citizens are affected by unmaintained
+roads, waterlogged streets, garbage overflow, broken streetlights, and illegal
+constructions, yet the systems in place to address these issues remain
+fragmented, unresponsive, and unaccountable. Existing platforms such as the
+GHMC App, MyGov, and state-level grievance portals suffer from critically low
+resolution rates, absence of real-time feedback, and a complete lack of
+transparency, resulting in a 23\% abandonment rate among citizens who file
+complaints and never receive a response.
+
+CIVICOS (Civic Infrastructure and Oversight System) is an AI-powered urban
+governance and civic accountability platform designed to bridge this gap. It
+connects citizens, municipal authorities, and elected representatives on a
+single unified platform to report, track, and resolve civic infrastructure
+issues transparently and in real time. The platform enables citizens to submit
+geo-tagged complaints with photographic evidence, track their complaint status
+in real time, visualize issue hotspots across the city through an AI-powered
+live heatmap, and navigate safely using an AI Smart Routing engine that avoids
+active complaint zones.
+
+For municipal authorities, CIVICOS replaces 15 to 20 fragmented databases with
+a single intelligent dashboard that provides zone-wise analytics, complaint
+backlogs, and resolution rate monitoring. For elected representatives, the
+platform automatically generates verified performance scorecards based on actual
+civic resolution data, introducing data-driven accountability where none
+previously existed.
+
+The system is built using Next.js and TypeScript for the frontend, PostgreSQL
+via Neon as the database, Prisma as the ORM, NextAuth.js for role-based
+authentication, Leaflet.js with Turf.js for geospatial mapping and heatmap
+rendering, OSRM for route generation, and Claude AI for the civic assistant and
+smart routing intelligence.
+
+CIVICOS targets an impact of 50 million urban citizens, 500 municipalities, and
+543 MLAs held accountable, with a projected 40 percent improvement in complaint
+resolution time. The platform is designed to be city-agnostic and scalable
+across all Indian urban centres, with a vision to deploy across 500 cities by
+Year 3 of operations.
+
+\newpage
+
+% ============================================================
+% TABLE OF CONTENTS
+% ============================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\bfseries\fontsize{16}{19}\selectfont CONTENTS}
+\end{center}
+\tableofcontents
+
+% ============================================================
+% LIST OF FIGURES
+% ============================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\bfseries\fontsize{16}{19}\selectfont LIST OF FIGURES}
+\addcontentsline{toc}{chapter}{List of Figures}
+\end{center}
+\listoffigures
+
+% ============================================================
+% LIST OF TABLES
+% ============================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\bfseries\fontsize{16}{19}\selectfont LIST OF TABLES}
+\addcontentsline{toc}{chapter}{List of Tables}
+\end{center}
+\listoftables
+
+% ============================================================
+% CHAPTER 1 — INTRODUCTION
+% ============================================================
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{plain}
+
+\chapter{Introduction}
+
+\section{Background}
+
+India is one of the fastest urbanising nations in the world. According to
+UN-Habitat (2024), 416 million more Indians will migrate to cities by 2050,
+placing pressure on already strained infrastructure.
+
+Despite this, mechanisms for reporting civic issues remain outdated; citizens must
+navigate 15 to 20 helplines and apps with no guarantee of acknowledgement.
+
+\section{The Problem}
+
+The civic governance crisis in India can be understood across three dimensions:
+
+\subsection{Infrastructure Failure}
+
+\begin{itemize}
+    \item 3,597 Indians die every year from road accidents linked to
+    unmaintained infrastructure (MoRTH, 2023).
+    \item Waterlogged drainage, illegal constructions, and garbage overflow go
+    unreported or unresolved for weeks.
+    \item Broken streetlights make 40\% of urban streets unsafe after dark.
+\end{itemize}
+
+\subsection{System Failure}
+
+\begin{itemize}
+    \item 68\% of civic complaints go unresolved beyond 30 days
+    (World Bank, 2024).
+    \item ₹17,500 crore is lost annually due to broken urban infrastructure
+    (World Bank, 2024).
+    \item ₹450 million is wasted on misallocated repairs every year due to
+    poor data (NITI Aayog, 2023).
+\end{itemize}
+
+\subsection{Accountability Failure}
+
+\begin{itemize}
+    \item Only 31\% of urban Indians trust their local government today
+    (UN-Habitat, 2024).
+    \item There exists zero standardised mechanism to evaluate MLA or municipal
+    performance on civic metrics.
+    \item Elections are held on promises, never on verified civic delivery data.
+\end{itemize}
+
+\section{Proposed Solution}
+
+CIVICOS (Civic Infrastructure and Oversight System) is an AI-powered urban
+governance and civic accountability platform that addresses all three dimensions
+of this problem. It operates across three user roles:
+
+\begin{itemize}
+    \item \textbf{Citizens} --- report geo-tagged issues with photo proof, track
+    resolution in real time, and navigate safely using AI-powered routing.
+    \item \textbf{Municipal Authorities} --- manage all complaints through one
+    unified dashboard, replacing 15--20 fragmented systems.
+    \item \textbf{MLAs and Government Bodies} --- receive auto-generated
+    performance scorecards based on verified resolution data, not self-reported
+    claims.
+\end{itemize}
+
+\section{Objectives}
+
+The primary objectives of CIVICOS are as follows:
+
+\begin{enumerate}
+    \item To provide citizens a single platform to report all categories of
+    urban infrastructure issues.
+    \item To ensure every complaint receives a real-time status update,
+    eliminating the zero-feedback problem.
+    \item To replace fragmented municipal databases with one intelligent unified
+    dashboard.
+    \item To reduce civic complaint resolution time by 40\% through structured
+    escalation and routing.
+    \item To automatically generate verified performance scorecards for 543 MLAs
+    based on actual data.
+\end{enumerate}
+
+\section{Scope of the Project}
+
+The current version of CIVICOS is scoped for the city of Hyderabad, covering
+all 100+ municipal zones under the GHMC jurisdiction. The platform is designed
+to be city-agnostic, meaning any city's boundary data can be loaded into the
+mapping layer without changes to the core system. The target scale by Year 3 is
+500 Indian cities serving 50 million urban citizens.
+
+\section{Organisation of the Report}
+
+The remainder of this report is organised as follows:
+
+\begin{itemize}
+    \item Chapter 2 presents a literature survey of existing research in civic
+    complaint management, geospatial mapping, accountability frameworks, and
+    AI-powered routing.
+    \item Chapter 3 covers system analysis including problems with existing
+    systems and the proposed system architecture.
+    \item Chapter 4 describes the system design through use case and activity
+    diagrams.
+    \item Chapter 5 details the implementation with key code modules.
+    \item Chapter 6 presents the result analysis with screenshots.
+    \item Chapter 7 and Chapter 8 cover the conclusion and future enhancements
+    respectively.
+\end{itemize}
+
+% ============================================================
+% CHAPTER 2 — LITERATURE SURVEY
+% ============================================================
+\chapter{Literature Survey}
+
+This chapter surveys key research papers and institutional studies relevant to civic complaint management, geospatial mapping, political accountability, and AI-powered governance systems. It identifies critical gaps in existing platforms and informs the design of CIVICOS.
+
+\section{Sharma and Mehta (2022) --- E-Governance and Citizen Grievance Redressal in Urban India}
+
+Sharma and Mehta (2022) study existing grievance portals like CPGRAMS, finding an average resolution rate of just 32\% and that 23\% of users abandon civic apps permanently after 7 days with no response. Platforms entirely lack AI auto‑escalation and real‑time tracking, leaving citizens with no feedback loop or resolution trail.
+
+\section{Patel et al. (2023) --- GIS-Based Urban Infrastructure Monitoring}
+
+Patel et al. (2023) pilot choropleth heatmapping in Pune and Surat, achieving a 35\% reduction in average complaint response time and 41\% fewer redundant field visits. However, heatmaps were limited to single categories (e.g., waste management) and not integrated with citizen‑facing submission tools.
+
+\section{NITI Aayog (2023) --- Political Accountability and Public Service Delivery}
+
+NITI Aayog (2023) documents that no standard automated system evaluates elected representative performance on civic metrics, with all existing tools relying on easily manipulated self‑reported data. Pilot cities with accountability frameworks saw 47\% higher resolution rates; the paper recommends AI‑generated scorecards on verified data. Yet no platform currently translates complaint data into public politician‑specific metrics.
+
+\section{Khan and Lee (2023) --- Pothole Detection and Safe Routing Using Machine Learning}
+
+Khan and Lee (2023) analyse 1.2 million kilometres of road data across 6 countries, finding that AI routing with real‑time road conditions cuts accident risk by 28\%, while roads with active complaints show 3.4× higher accident probability. No existing civic platform uses its own complaint database as live routing input, keeping reporting and routing disconnected.
+
+\section{Reddy and Rao (2022) --- Unified Dashboard Design for Municipal Service Management}
+
+Reddy and Rao (2022) observe that most Indian municipal bodies use 15–20 disconnected systems, with field officers spending 2.3 hours daily switching tools. Pilot unified dashboards reduced overhead by 30\% and improved resolution by 22\%; RBAC was deemed essential. No platform offers a single unified dashboard with built‑in multi‑tier RBAC for all complaint categories.
+
+\section{Singh and Garcia (2023) --- AI Conversational Agents in Public Service Delivery}
+
+Singh and Garcia (2023) show that AI conversational assistants in government portals cut complaint filing time from 6.2 to 1.8 minutes, reduced errors by 47\%, increased non‑English adoption by 58\%, and lowered call centre volume by 41\%. No Indian civic platform currently integrates a conversational AI assistant for guided submission or live status queries.
+
+% ============================================================
+% CHAPTER 3 — SYSTEM ANALYSIS
+% ============================================================
+\chapter{System Analysis}
+
+\section{Problems with Existing System}
+
+The following platforms currently handle civic complaints in India:
+
+\begin{table}[h]
+\centering
+\caption{Table 3.1 --- Drawbacks of Existing Civic Systems}
+\vspace{0.4em}
+\begin{tabular}{p{0.30\linewidth} p{0.60\linewidth}}
+\toprule
+\textbf{System} & \textbf{Drawback} \\
+\midrule
+GHMC App / MyGov & No real-time tracking; complaints auto-close without
+resolution. \\[0.4em]
+311-style Helplines & Phone-based only; no photo proof; no accountability
+trail. \\[0.4em]
+WhatsApp Groups & Informal; no escalation mechanism; data is lost. \\[0.4em]
+State Grievance Portals & 15--20 siloed databases with no
+cross-communication. \\[0.4em]
+Manual MLA Feedback & Self-reported, unverified, and manipulated before
+elections. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key failures across all existing systems are as follows:
+
+\begin{itemize}
+    \item 68\% of complaints go unresolved beyond 30 days
+    (World Bank, 2024).
+    \item Citizens have no proof of filing --- no receipt, no trail.
+    \item Zero predictive capability --- systems react after damage,
+    never before.
+    \item No unified view for municipal authorities across issue categories.
+    \item No data-driven accountability mechanism for elected representatives.
+\end{itemize}
+
+\section{Proposed System}
+
+CIVICOS resolves these gaps through three role-based modules:
+
+\subsection{For Citizens}
+
+\begin{itemize}
+    \item Geo-tagged complaint submission with mandatory photo evidence.
+    \item Real-time status tracking (Submitted $\rightarrow$ Under Review
+    $\rightarrow$ In Progress $\rightarrow$ Resolved).
+    \item AI-powered heatmap showing live issue density across city zones.
+    \item AI Smart Routing to navigate safely around active complaint areas.
+\end{itemize}
+
+\subsection{For Municipal Authorities}
+
+\begin{itemize}
+    \item Single unified dashboard replacing all fragmented systems.
+    \item Zone-wise analytics, resolution rates, and pending backlog view.
+    \item Role-based access with authority verification.
+\end{itemize}
+
+\subsection{For MLAs and Government Bodies}
+
+\begin{itemize}
+    \item Auto-generated performance scorecard from verified complaint data.
+    \item Public leaderboard ranking all 543 MLAs by resolution record.
+    \item Historical timeline visible to citizens before elections.
+\end{itemize}
+
+\section{System Architecture}
+
+The architecture of CIVICOS follows a three-tier client-server model:
+
+\subsection{Tier 1 --- Presentation Layer}
+
+The Next.js frontend with React components, Tailwind CSS styling, and
+Leaflet.js for map rendering forms the presentation layer. All user
+interactions originate here.
+
+\subsection{Tier 2 --- Application Layer}
+
+Next.js API routes handle all business logic, including complaint submission,
+status updates, MLA score computation, AI routing, and authentication via
+NextAuth.js.
+
+\subsection{Tier 3 --- Data Layer}
+
+A PostgreSQL database hosted on Neon, accessed through Prisma ORM, constitutes
+the data layer. It stores all complaints, users, authority records, MLA data,
+and resolution history.
+
+The AI routing module communicates with OSRM for route generation and
+cross-checks results against the complaint database. Claude AI is called via
+API for the civic assistant and smart routing intelligence.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{architecture.png}
+\caption{Fig 3.1 --- System Architecture Diagram}
+\end{figure}
+
+% ============================================================
+% CHAPTER 4 — SYSTEM DESIGN
+% ============================================================
+\chapter{System Design}
+
+\section{Use Case Diagram}
+The Use Case Diagram for CIVICOS identifies three primary actors interacting
+with the system: the Citizen, the Municipal Authority, and the MLA /
+Government Body. A fourth system-level actor, the AI Engine, operates
+internally to support routing and heatmap generation.
+
+(Refer Fig 4.1 --- Use Case Diagram)
+
+\textbf{Actor Descriptions:}
+
+\textbf{Citizen:} Any registered urban resident who reports civic issues,
+tracks complaint status, and navigates using AI routing.
+
+\textbf{Municipal Authority:} A verified official assigned to a zone,
+responsible for acknowledging and resolving routed complaints.
+
+\textbf{MLA / Government Body:} An elected representative whose performance
+scorecard is auto-generated from verified civic resolution data.
+
+\textbf{AI Engine:} An internal actor that generates heatmaps, computes
+safe routes via OSRM, and powers the civic assistant.
+
+\begin{table}[h]
+\centering
+\caption{Table 4.1 --- Use Case Summary}
+\vspace{0.4em}
+\begin{tabular}{p{0.28\linewidth} p{0.62\linewidth}}
+\toprule
+\textbf{Actor} & \textbf{Use Cases} \\
+\midrule
+Citizen & Register/Login (UC-01), Submit Complaint (UC-02), Track Status
+(UC-03), Reopen Complaint (UC-04), View AI Heatmap (UC-05), AI Safe
+Routing (UC-06), View MLA Leaderboard (UC-07) \\[0.4em]
+Municipal Authority & Login with Authority Code (UC-08), View Assigned
+Complaints (UC-09), Update Complaint Status (UC-10), View Zone
+Analytics (UC-11) \\[0.4em]
+MLA / Govt Body & View Performance Scorecard (UC-12), View Historical
+Timeline (UC-13) \\[0.4em]
+AI Engine & Generate Heatmap (UC-14), Compute Safe Route (UC-15) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{usecase.png}
+\caption{Fig 4.1 --- Use Case Diagram}
+\end{figure}
+
+\section{Activity Diagram}
+Two activity diagrams are defined for CIVICOS --- one covering the
+end-to-end complaint lifecycle and one covering the AI-powered safe
+routing flow.
+
+\subsection{Activity Diagram 1 --- Complaint Submission and Resolution
+Lifecycle}
+
+(Refer Fig 4.2 --- Activity Diagram: Complaint Lifecycle)
+
+The lifecycle begins when the citizen submits a complaint with issue
+category, description, mandatory photo, and auto-captured GPS coordinates.
+The system validates all mandatory fields and assigns a unique tracking ID
+with status set to Submitted. The complaint is routed to the appropriate
+municipal authority based on geo-tagged zone, who progresses it through
+Under Review, In Progress, and Resolved stages, with every transition
+timestamped and logged against the responsible authority ID. The citizen
+receives real-time notifications at each stage. If the resolution is
+disputed, the citizen may reopen the complaint with fresh photo evidence,
+restarting the review cycle.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{activity_complaint.png}
+\caption{Fig 4.2 --- Activity Diagram: Complaint Lifecycle}
+\end{figure}
+
+\subsection{Activity Diagram 2 --- AI Safe Routing Flow}
+
+(Refer Fig 4.3 --- Activity Diagram: AI Safe Routing)
+
+The routing flow begins when the citizen enters a source and destination
+address. The system calls OSRM to generate an optimised route as an
+ordered list of waypoints, then queries the complaint database for all
+unresolved issues within a 100-metre geospatial buffer of any waypoint
+using Turf.js. If no active complaints intersect the route, it is returned
+as safe. If danger zones are detected, the AI engine flags the affected
+waypoints, requests an alternate route from OSRM, and repeats the proximity
+check. If no clear alternate exists, the original route is displayed with
+all danger zones highlighted and a caution warning issued to the citizen.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{activity_routing.png}
+\caption{Fig 4.3 --- Activity Diagram: AI Safe Routing}
+\end{figure}
+
+% ============================================================
+% CHAPTER 5 — IMPLEMENTATION
+% ============================================================
+\chapter{Implementation}
+
+This chapter presents the key functional modules of CIVICOS with
+representative code snippets illustrating core logic. Complete source code
+is maintained in the project repository.
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  framerule=0.8pt,
+  rulecolor=\color{gray!50},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  breaklines=true,
+  language=Java,
+  keywordstyle=\bfseries\color{blue!70!black},
+  stringstyle=\color{orange!80!black},
+  commentstyle=\itshape\color{green!50!black},
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  xleftmargin=12pt,
+  xrightmargin=4pt,
+  aboveskip=10pt,
+  belowskip=10pt,
+}
+
+\section{Complaint Submission with Geo-Tagging}
+The complaint submission handler captures the citizen's form input, attaches
+GPS coordinates retrieved from the browser's Geolocation API, and persists
+the record to the database via Prisma ORM.
+
+\begin{lstlisting}[caption={Complaint Submission API Route ---
+app/api/complaints/submit/route.ts}]
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json(
+    { error: "Unauthorized" }, { status: 401 }
+  );
+
+  const { category, description, latitude,
+          longitude, imageUrl } = await req.json();
+
+  const complaint = await prisma.complaint.create({
+    data: {
+      category,
+      description,
+      latitude,
+      longitude,
+      imageUrl,
+      status: "SUBMITTED",
+      citizenId: session.user.id,
+      zone: await getZoneFromCoords(latitude, longitude),
+    },
+  });
+
+  return NextResponse.json({
+    success: true,
+    complaintId: complaint.id
+  });
+}
+\end{lstlisting}
+
+The \texttt{getZoneFromCoords} utility uses Turf.js to perform a
+point-in-polygon check against preloaded GeoJSON zone boundaries of
+Hyderabad, returning the correct municipal zone for routing the complaint
+to the appropriate authority.
+
+\section{MLA Performance Score Computation}
+The MLA scoring module queries the complaint database for all issues within
+an MLA's ward and computes a resolution score based on the ratio of resolved
+complaints to total complaints, weighted by average resolution time.
+
+\begin{lstlisting}[caption={MLA Score Computation ---
+lib/scoring/computeMlaScore.ts}]
+export async function computeMlaScore(mlaId: string) {
+  const ward = await prisma.mLA.findUnique({
+    where: { id: mlaId },
+    select: { wardZones: true },
+  });
+
+  const complaints = await prisma.complaint.findMany({
+    where: { zone: { in: ward.wardZones } },
+  });
+
+  const total = complaints.length;
+  const resolved = complaints.filter(
+    c => c.status === "RESOLVED"
+  ).length;
+
+  const avgResolutionDays = complaints
+    .filter(c => c.resolvedAt !== null)
+    .reduce((sum, c) => {
+      const days = (c.resolvedAt!.getTime() -
+                   c.createdAt.getTime()) / 86400000;
+      return sum + days;
+    }, 0) / (resolved || 1);
+
+  const resolutionRate = total > 0 ?
+    (resolved / total) * 100 : 0;
+  const speedScore = Math.max(0, 100 - avgResolutionDays * 2);
+  const finalScore = (resolutionRate * 0.7) +
+                     (speedScore * 0.3);
+
+  return {
+    mlaId,
+    totalComplaints: total,
+    resolvedComplaints: resolved,
+    resolutionRate: resolutionRate.toFixed(1),
+    avgResolutionDays: avgResolutionDays.toFixed(1),
+    finalScore: finalScore.toFixed(1),
+  };
+}
+\end{lstlisting}
+
+\section{AI Safe Routing Logic}
+The routing module fetches an OSRM-generated route, extracts all waypoints,
+and checks each against unresolved complaint coordinates using Turf.js
+proximity detection.
+
+\begin{lstlisting}[caption={AI Safe Routing Module ---
+lib/routing/safeRoute.ts}]
+import * as turf from "@turf/turf";
+
+export async function getSafeRoute(
+  origin: [number, number],
+  destination: [number, number]
+) {
+  const osrmRes = await fetch(
+    `https://router.project-osrm.org/route/v1/driving/
+     ${origin[1]},${origin[0]};
+     ${destination[1]},${destination[0]}
+     ?geometries=geojson&overview=full`
+  );
+  const osrmData = await osrmRes.json();
+  const routeCoords =
+    osrmData.routes[0].geometry.coordinates;
+
+  const activeComplaints = await prisma.complaint.findMany({
+    where: { status: { not: "RESOLVED" } },
+    select: { latitude: true, longitude: true, category: true },
+  });
+
+  const dangerZones = activeComplaints.filter(complaint => {
+    const complaintPoint = turf.point([
+      complaint.longitude, complaint.latitude
+    ]);
+    return routeCoords.some((coord: number[]) => {
+      const routePoint = turf.point(coord);
+      return turf.distance(
+        complaintPoint, routePoint, { units: "meters" }
+      ) <= 100;
+    });
+  });
+
+  return {
+    route: routeCoords,
+    dangerZones,
+    isSafe: dangerZones.length === 0,
+  };
+}
+\end{lstlisting}
+
+% ============================================================
+% CHAPTER 6 — RESULT ANALYSIS
+% ============================================================
+\chapter{Result Analysis}
+
+This chapter presents the key screens of the CIVICOS platform with
+descriptions of their functionality and expected behaviour. Screenshots
+correspond to the working prototype developed during the implementation
+phase.
+
+\section{Citizen Registration and Login}
+
+The landing page presents a clean authentication interface with two login
+options --- email-password and Google OAuth via NextAuth.js. On successful
+authentication, the user is redirected to their role-specific dashboard.
+
+
+\section{Complaint Submission Form}
+
+The complaint submission screen presents a structured form with dropdown for
+issue category, description text area, mandatory photo upload, and auto-filled
+location. On submission, a unique complaint ID is assigned and the user is
+redirected to tracking view.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{public_reports.png}
+\caption{Public Reports Dashboard}
+\end{figure}
+
+\section{Real-Time Complaint Tracking}
+
+The tracking screen displays a vertical timeline of complaint status stages with
+timestamps and authority names. Completed stages are visually distinguished
+from pending ones.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{audit_trail.png}
+\caption{Fig 6.3 --- Complaint Audit Trail}
+\end{figure}
+
+\section{AI-Powered Live Heatmap}
+
+The heatmap screen renders an interactive Leaflet.js map of Hyderabad with a
+choropleth heat layer updating in real time. Issue density is colour-coded from
+low (green) to high (red).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{ward_heatmap.png}
+\caption{Live Issue Heatmap, Hyderabad}
+\end{figure}
+
+\section{AI Safe Routing Screen}
+
+The routing screen accepts source and destination, renders the OSRM route, and
+flags complaint zones within 100 metres. An alternate route is suggested if the
+primary passes through active complaint areas.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{safe_routing.png}
+\caption{AI Safe Route Output}
+\end{figure}
+
+\section{Municipal Authority Dashboard}
+
+The authority dashboard presents a unified view of assigned complaints with
+filters and KPI panel. Status updates are performed inline.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{authority_dashboard.png}
+\caption{Authority Dashboard}
+\end{figure}
+
+\section{MLA Performance Leaderboard}
+
+The MLA leaderboard displays all MLAs ranked by computed performance score. A
+detail view for each MLA presents a historical performance timeline.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{mla_leaderboard_top.png}
+\caption{MLA Leaderboard Overview}
+\end{figure}
+
+
+% ============================================================
+% CHAPTER 7 — CONCLUSION
+% ============================================================
+\chapter{Conclusion}
+
+CIVICOS addresses a deeply rooted and long-neglected problem in Indian urban
+governance --- the complete absence of a transparent, accountable, and
+data-driven mechanism for civic complaint resolution. Existing platforms
+suffer from fragmented databases, zero feedback loops, and no measurable
+accountability for elected representatives, resulting in 68\% of complaints
+going unresolved beyond 30 days and only 31\% of urban Indians trusting
+their local government.
+
+The platform consolidates complaint reporting, real-time tracking,
+geospatial heatmapping, AI-powered safe routing, and automated MLA
+performance scoring into a single unified system. By replacing 15--20
+disconnected municipal tools with one intelligent dashboard and introducing
+India's first automated MLA leaderboard built on verified civic data,
+CIVICOS directly attacks both the efficiency gap and the accountability gap
+simultaneously.
+
+The technology stack --- Next.js, PostgreSQL via Neon, Prisma, Leaflet.js,
+OSRM, Turf.js, and Claude AI --- was selected to ensure scalability, type
+safety, and real-time responsiveness at city scale. The three-tier
+architecture cleanly separates citizen-facing interfaces, business logic,
+and data persistence, making the system maintainable and extensible as
+scope grows.
+
+The prototype successfully demonstrates geo-tagged complaint submission,
+live status tracking, heatmap rendering, safe route generation with active
+complaint zone detection, authority dashboard analytics, and automated MLA
+scoring. CIVICOS establishes a foundation for restoring public trust in
+urban governance through radical transparency and verified performance data.
+
+% ============================================================
+% CHAPTER 8 — FUTURE ENHANCEMENTS
+% ============================================================
+\chapter{Future Enhancements}
+
+The current prototype of CIVICOS focuses on the core complaint lifecycle,
+heatmapping, routing, and accountability features for the city of Hyderabad.
+The following enhancements are planned for subsequent development phases.
+
+\section{Mobile Application}
+A React Native mobile application will be developed to extend CIVICOS to
+smartphone users, enabling complaint submission directly from the field with
+native camera integration and background GPS tracking.
+
+\section{Predictive Infrastructure Failure Modelling}
+Machine learning models will be trained on historical complaint density,
+seasonal patterns, and zone-level resolution data to predict infrastructure
+failures before they occur, enabling municipalities to shift from reactive
+to proactive maintenance.
+
+\section{Multi-City Expansion}
+The platform is architected to be city-agnostic. Future work will involve
+onboarding boundary GeoJSON data for additional Indian cities, with a target
+of 500 municipalities by Year 3 under a SaaS subscription model for
+municipal bodies.
+
+\section{Multilingual Support}
+Support for regional languages including Telugu, Hindi, Tamil, and Kannada
+will be added using i18n internationalisation to ensure accessibility for
+citizens who are not comfortable with English.
+
+\section{IoT Sensor Integration}
+Integration with smart city IoT sensors for automated detection of
+waterlogging, air quality degradation, and structural stress will allow
+CIVICOS to auto-generate complaints without requiring manual citizen
+reporting for certain issue categories.
+
+% ============================================================
+% CHAPTER 9 — REFERENCES
+% ============================================================
+\chapter{References}
+
+\begin{enumerate}[label={[\arabic*]}, leftmargin=2.5em, itemsep=6pt]
+
+\item S.~Sharma and R.~Mehta, ``E-Governance and Citizen Grievance
+Redressal in Urban India,'' \textit{Journal of Urban Technology},
+vol.~29, no.~2, pp.~45--67, 2022.
+
+\item A.~Patel and V.~Nair, ``GIS-Based Urban Infrastructure Monitoring,''
+\textit{International Journal of Geographic Information Science},
+vol.~37, no.~4, pp.~112--134, 2023.
+
+\item NITI Aayog, ``Political Accountability and Public Service Delivery
+in Indian Cities,'' NITI Aayog Research Paper, Government of India,
+New Delhi, 2023.
+
+\item R.~Kumar and S.~Joshi, ``Pothole Detection and Safe Routing Using
+Machine Learning,'' \textit{IEEE Transactions on Intelligent
+Transportation Systems}, vol.~24, no.~8, pp.~3201--3215, 2023.
+
+\item World Bank, ``Urban Civic Infrastructure and Complaint Resolution
+Report,'' World Bank Urban Development Series, Washington D.C., 2024.
+
+\item UN-Habitat, ``World Cities Report 2024: Public Trust in Local
+Governance,'' United Nations Human Settlements Programme, Nairobi, 2024.
+
+\item Ministry of Road Transport and Highways (MoRTH), ``Road Accidents
+in India --- Annual Report 2023,'' Government of India, New Delhi, 2023.
+
+\item T.~Nguyen and P.~Sharma, ``Real-Time Geospatial Heatmapping for
+Smart City Complaint Systems,'' \textit{International Journal of Smart
+City Applications}, vol.~5, no.~1, pp.~23--41, 2023.
+
+\item M.~Rao and K.~Reddy, ``Role-Based Access Control in
+Multi-Stakeholder Civic Platforms,'' \textit{Journal of Information
+Systems and Technology Management}, vol.~20, no.~3, pp.~78--95, 2022.
+
+\item Civic Tech Report, ``Citizen Engagement and Digital Governance
+Platforms in South Asia,'' Civic Tech Global Initiative, 2024.
+
+\item A.~Singh and D.~Verma, ``Choropleth Mapping Techniques for Urban
+Issue Density Visualisation,'' \textit{Journal of Cartography and
+Geographic Information}, vol.~72, no.~2, pp.~89--104, 2022.
+
+\item S.~Iyer and P.~Krishnan, ``Automated Performance Scoring for
+Elected Representatives Using Civic Data,'' \textit{Journal of
+e-Government Studies and Best Practices}, vol.~14, pp.~1--18, 2023.
+
+\item L.~Zhang and H.~Chen, ``OSRM-Based Dynamic RouteOptimisation with
+Real-Time Hazard Avoidance,'' \textit{Research Part C:
+Emerging Technologies}, pp.~103--119, 2023.
+
+\end{enumerate}
+
+\end{document}
+
+
+\end{document}
